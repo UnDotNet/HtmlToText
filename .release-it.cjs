@@ -12,9 +12,6 @@ module.exports = {
       excludeAuthors: ['John Campion'],
     },
     'release-it-dotnet': {
-      nugetFeedUrl: 'https://nuget.jcamp.me/nuget/test-nuget/v3/index.json',
-      nugetApiKey: '868dee1f335b288667fe827baf7a07894a8e3c5f',
-      keepArtifacts: true,
       publish: true,
       csprojFile: './src/UnDotNet.HtmlToText.csproj',
     },
