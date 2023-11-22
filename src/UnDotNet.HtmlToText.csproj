@@ -6,7 +6,7 @@
         <Nullable>annotations</Nullable>
         <LangVersion>preview</LangVersion>
         <PackageId>UnDotNet.HtmlToText</PackageId>
-        <Version>0.1.1</Version>
+        <Version>1.0.0</Version>
         
         <Authors>John Campion</Authors>
         <PackageTags>html;text;converter;html-to-text</PackageTags>
