@@ -21,6 +21,9 @@ module.exports = {
     tagName: 'v${version}',
     commitMessage: 'chore(release): v${version}',
   },
+  github: {
+    release: true,
+  },
   npm: {
     publish: false,
   },
