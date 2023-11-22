@@ -1,4 +1,4 @@
-![htmltotext](https://github.com/UnDotNet/HtmlToText/assets/1094820/3ecadc52-b56e-487e-8d4f-18d5f499b757) 
+![htmltotext](https://raw.githubusercontent.com/UnDotNet/HtmlToText/main/assets/htmltotext_logo.png) 
 # UnDotNet.HtmlToText
 
 HTML to Text converter for DotNet
