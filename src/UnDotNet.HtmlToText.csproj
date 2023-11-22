@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>annotations</Nullable>
+        <LangVersion>preview</LangVersion>
+        <PackageId>UnDotNet.HtmlToText</PackageId>
+        <Version>1.0.0</Version>
+        
+        <Authors>John Campion</Authors>
+        <PackageTags>html;text;converter;html-to-text</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIconUrl>https://raw.githubusercontent.com/UnDotNet/HtmlToText/main/assets/htmltotext_logo.png</PackageIconUrl>
+        <PackageIcon>htmltotext_logo.png</PackageIcon>
+        <PackageProjectUrl>https://github.com/UnDotNet/HtmlToText</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/UnDotNet/HtmlToText</RepositoryUrl>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <DebugSymbols>true</DebugSymbols>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+<!--        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+<!--        <WarningsAsErrors>true</WarningsAsErrors>-->
+<!--        <CLSCompliant>true</CLSCompliant>-->
+<!--        <ComVisible>false</ComVisible>-->
+
+        <AssetsDirectory>../assets</AssetsDirectory>
+        
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AngleSharp" Version="1.0.4"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="UnDotNet.HtmlToText.Tests"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="../README.md" Pack="true" Visible="false" PackagePath="\"/>
+        <None Include="$(AssetsDirectory)/htmltotext_logo.png" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+
+</Project>
