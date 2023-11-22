@@ -1,3 +1,5 @@
+// ReSharper disable UnusedParameter.Local
+
 using AngleSharp.Dom;
 
 namespace UnDotNet.HtmlToText;
@@ -10,8 +12,8 @@ internal static class GenericFormatters
   }
   
   public static Dictionary<string, FormatCallback> Formatters { get; set; } = new();
-  
-  public static string RenderOpenTag(IElement elem)
+
+  private static string RenderOpenTag(IElement elem)
   {
 
     var attrs = "";
@@ -35,8 +37,8 @@ internal static class GenericFormatters
   {
     return $"</{elem.TagName}>";
   }
-  
-  public static void Build()
+
+  private static void Build()
   {
     //
     // Dummy formatter that discards the input and does nothing.
@@ -51,7 +53,7 @@ internal static class GenericFormatters
     //
     Formatters.Add("inlineString", (elem, walk, builder, formatOptions) =>
     {
-      builder.addLiteral(formatOptions.stringLiteral ?? "");
+      builder.AddLiteral(formatOptions.StringLiteral);
     });
 
     //
@@ -59,9 +61,9 @@ internal static class GenericFormatters
     //
     Formatters.Add("blockString", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2 );
-      builder.addLiteral(formatOptions.stringLiteral ?? "");
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2 );
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2 );
+      builder.AddLiteral(formatOptions.StringLiteral);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2 );
     });
 
     //
@@ -77,9 +79,9 @@ internal static class GenericFormatters
     //
     Formatters.Add("block", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
       walk(walk, elem.ChildNodes, builder);
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
     
     //
@@ -87,13 +89,13 @@ internal static class GenericFormatters
     //
     Formatters.Add("inlineTag", (elem, walk, builder, formatOptions) =>
     {
-      builder.startNoWrap();
-      builder.addLiteral(RenderOpenTag(elem));
-      builder.stopNoWrap();
+      builder.StartNoWrap();
+      builder.AddLiteral(RenderOpenTag(elem));
+      builder.StopNoWrap();
       walk(walk, elem.ChildNodes, builder);
-      builder.startNoWrap();
-      builder.addLiteral(RenderCloseTag(elem));
-      builder.stopNoWrap();
+      builder.StartNoWrap();
+      builder.AddLiteral(RenderCloseTag(elem));
+      builder.StopNoWrap();
     });
     
     //
@@ -101,15 +103,15 @@ internal static class GenericFormatters
     //
     Formatters.Add("blockTag", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
-      builder.startNoWrap();
-      builder.addLiteral(RenderOpenTag(elem));
-      builder.stopNoWrap();
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
+      builder.StartNoWrap();
+      builder.AddLiteral(RenderOpenTag(elem));
+      builder.StopNoWrap();
       walk(walk, elem.ChildNodes, builder);
-      builder.startNoWrap();
-      builder.addLiteral(RenderCloseTag(elem));
-      builder.stopNoWrap();
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.StartNoWrap();
+      builder.AddLiteral(RenderCloseTag(elem));
+      builder.StopNoWrap();
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
     
     //
@@ -117,9 +119,9 @@ internal static class GenericFormatters
     //
     Formatters.Add("inlineHtml", (elem, walk, builder, formatOptions) =>
     {
-      builder.startNoWrap();
-      builder.addLiteral(elem.OuterHtml);
-      builder.stopNoWrap();
+      builder.StartNoWrap();
+      builder.AddLiteral(elem.OuterHtml);
+      builder.StopNoWrap();
     });
     
     //
@@ -127,11 +129,11 @@ internal static class GenericFormatters
     //
     Formatters.Add("blockHtml", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
-      builder.startNoWrap();
-      builder.addLiteral(elem.OuterHtml);
-      builder.stopNoWrap();
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
+      builder.StartNoWrap();
+      builder.AddLiteral(elem.OuterHtml);
+      builder.StopNoWrap();
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
 
     //
@@ -139,9 +141,9 @@ internal static class GenericFormatters
     //
     Formatters.Add("inlineSurround", (elem, walk, builder, formatOptions) =>
     {
-      builder.addLiteral(formatOptions.prefix ?? "");
+      builder.AddLiteral(formatOptions.Prefix);
       walk(walk, elem.ChildNodes, builder);
-      builder.addLiteral(formatOptions.suffix ?? "");
+      builder.AddLiteral(formatOptions.Suffix);
     });
 
   }

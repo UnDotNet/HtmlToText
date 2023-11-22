@@ -9,7 +9,7 @@ public partial class TagsTests
     public class OlTests
     {
 
-        private string htmlToText(string? html, HtmlToTextOptions? options = null,
+        private static string HtmlToText(string? html, HtmlToTextOptions? options = null,
             Dictionary<string, string>? metadata = null) =>
             new HtmlToTextConverter().Convert(html, options, metadata);
 
@@ -17,7 +17,7 @@ public partial class TagsTests
         public void ShouldHandleEmptyOrderedLists()
         {
             var html = "<ol></ol>";
-            htmlToText(html).ShouldBe("");
+            HtmlToText(html).ShouldBe("");
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ public partial class TagsTests
         {
             var html = "<ol><li>foo</li><li>bar</li></ol>";
             var expected = " 1. foo\n 2. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ public partial class TagsTests
         {
             var html = "<ol type=\"1\"><li>foo</li><li>bar</li></ol>";
             var expected = " 1. foo\n 2. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
@@ -41,41 +41,41 @@ public partial class TagsTests
         {
             var html = "<ol type=\"whatever\"><li>foo</li><li>bar</li></ol>";
             var expected = " 1. foo\n 2. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeaAttribute()
+        public void ShouldSupportTheOrderedListTypeLowerAAttribute()
         {
             var html = "<ol type=\"a\"><li>foo</li><li>bar</li></ol>";
             var expected = " a. foo\n b. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeAAttribute()
+        public void ShouldSupportTheOrderedListTypeUpperAAttribute()
         {
             var html = "<ol type=\"A\"><li>foo</li><li>bar</li></ol>";
             var expected = " A. foo\n B. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeiAttribute()
+        public void ShouldSupportTheOrderedListTypeLowerIAttribute()
         {
             var html1 = "<ol type=\"i\"><li>foo</li><li>bar</li></ol>";
             var html2 = "<ol start=\"8\" type=\"i\"><li>foo</li><li>bar</li></ol>";
-            htmlToText(html1).ShouldBe(" i.  foo\n ii. bar");
-            htmlToText(html2).ShouldBe(" viii. foo\n ix.   bar");
+            HtmlToText(html1).ShouldBe(" i.  foo\n ii. bar");
+            HtmlToText(html2).ShouldBe(" viii. foo\n ix.   bar");
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeIAttribute()
+        public void ShouldSupportTheOrderedListTypeUpperIAttribute()
         {
             var html1 = "<ol type=\"I\"><li>foo</li><li>bar</li></ol>";
             var html2 = "<ol start=\"8\" type=\"I\"><li>foo</li><li>bar</li></ol>";
-            htmlToText(html1).ShouldBe(" I.  foo\n II. bar");
-            htmlToText(html2).ShouldBe(" VIII. foo\n IX.   bar");
+            HtmlToText(html1).ShouldBe(" I.  foo\n II. bar");
+            HtmlToText(html2).ShouldBe(" VIII. foo\n IX.   bar");
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ public partial class TagsTests
         {
             var html = "<ol start=\"100\"><li>foo</li><li>bar</li></ol>";
             var expected = " 100. foo\n 101. bar";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ public partial class TagsTests
         {
             var html = "<ol><li>foo<ol><li>bar<ol><li>baz</li><li>baz</li></ol></li></ol></li></ol>";
             var expected = " 1. foo\n    1. bar\n       1. baz\n       2. baz";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
@@ -119,25 +119,25 @@ public partial class TagsTests
                 "    2. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita k a s\n" +
                 "       d g u b e r g r e n, no sea takimata sanctus est Lorem ipsum dolor sit\n" +
                 "       amet.";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeaAttributePast26Characters()
+        public void ShouldSupportTheOrderedListTypeLowerAAttributePast26Characters()
         {
             var html1 = "<ol start=\"26\" type=\"a\"><li>foo</li><li>bar</li></ol>";
             var html2 = "<ol start=\"702\" type=\"a\"><li>foo</li><li>bar</li></ol>";
-            htmlToText(html1).ShouldBe(" z.  foo\n aa. bar");
-            htmlToText(html2).ShouldBe(" zz.  foo\n aaa. bar");
+            HtmlToText(html1).ShouldBe(" z.  foo\n aa. bar");
+            HtmlToText(html2).ShouldBe(" zz.  foo\n aaa. bar");
         }
 
         [TestMethod]
-        public void ShouldSupportTheOrderedListTypeAAttributePast26Characters()
+        public void ShouldSupportTheOrderedListTypeUpperAAttributePast26Characters()
         {
             var html1 = "<ol start=\"26\" type=\"A\"><li>foo</li><li>bar</li></ol>";
             var html2 = "<ol start=\"702\" type=\"A\"><li>foo</li><li>bar</li></ol>";
-            htmlToText(html1).ShouldBe(" Z.  foo\n AA. bar");
-            htmlToText(html2).ShouldBe(" ZZ.  foo\n AAA. bar");
+            HtmlToText(html1).ShouldBe(" Z.  foo\n AA. bar");
+            HtmlToText(html2).ShouldBe(" ZZ.  foo\n AAA. bar");
         }
 
         [TestMethod]
@@ -152,7 +152,7 @@ public partial class TagsTests
                                "";
             var expected =
                 "Good morning Jacob,\n\nLorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet.\n\n * run in the park (in progress)";
-            htmlToText(html, new () { wordwrap = null }).ShouldBe(expected);
+            HtmlToText(html, new () { Wordwrap = null }).ShouldBe(expected);
         }
 
         [TestMethod]
@@ -171,7 +171,7 @@ public partial class TagsTests
                                "";
             var expected =
                 " * list item\n   plain text\n * list item\n   div\n * list item\n\n   paragraph\n\n * list item";
-            htmlToText(html).ShouldBe(expected);
+            HtmlToText(html).ShouldBe(expected);
         }
     }
     

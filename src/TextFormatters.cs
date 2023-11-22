@@ -1,9 +1,10 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
+// ReSharper disable UnusedParameter.Local
 
 namespace UnDotNet.HtmlToText;
 
-public class TextFormatters
+public static class TextFormatters
 {
   static TextFormatters()
   {
@@ -12,19 +13,19 @@ public class TextFormatters
 
   public static Dictionary<string, FormatCallback> Formatters { get; set; } = new();
   
-  static string withBrackets(string str, BracketOptions? linkBrackets)
+  static string WithBrackets(string str, BracketOptions? linkBrackets)
   {
-    linkBrackets ??= new () {left = "", right = ""};
-    return linkBrackets.left + str + linkBrackets.right;
+    linkBrackets ??= new () {Left = "", Right = ""};
+    return linkBrackets.Left + str + linkBrackets.Right;
   }
 
   // path, rewriter, baseUrl, metadata, elem
-  static string pathRewrite(string path, RewriterCallback? rewriter = null, string? baseUrl = null, Dictionary<string, string>? metadata = null, IElement? elem = null)
+  static string PathRewrite(string path, RewriterCallback? rewriter = null, string? baseUrl = null, Dictionary<string, string>? metadata = null, IElement? elem = null)
   {
-    string modifiedPath = rewriter is not null ? rewriter(path, metadata, elem) : path;
-    return (modifiedPath[0] == '/' && baseUrl != null)
+    var modifiedPath = rewriter is not null ? rewriter(path, metadata, elem) : path;
+    return (modifiedPath != null && modifiedPath[0] == '/' && baseUrl != null
       ? baseUrl.TrimEnd('/') + modifiedPath
-      : modifiedPath;
+      : modifiedPath) ?? string.Empty;
   }
   
   /**
@@ -34,13 +35,13 @@ public class TextFormatters
 * @param { FormatOptions }     formatOptions      Options specific to a formatter.
 * @param { () => string }      nextPrefixCallback Function that returns increasing index each time it is called.
 */
-  static void formatList(IElement elem, RecursiveCallback walk, BlockTextBuilder builder, FormatOptions formatOptions, Func<string> nextPrefixCallback)
+  static void FormatList(IElement elem, RecursiveCallback walk, BlockTextBuilder builder, FormatOptions formatOptions, Func<string> nextPrefixCallback)
   {
     var isNestedList = elem.ParentElement?.NodeName is "LI";
     
     // With Roman numbers, index length is not as straightforward as with Arabic numbers or letters,
     // so the dumb length comparison is the most robust way to get the correct value.
-    int maxPrefixLength = 0;
+    var maxPrefixLength = 0;
     if (elem.Children.Length == 0) return;
     IEnumerable<(INode node, string prefix)> listItems = (elem.ChildNodes)
       .Where(child => child.NodeType != NodeType.Text || !Regex.IsMatch(child.NodeValue, @"^\s*$"))
@@ -50,32 +51,32 @@ public class TextFormatters
         {
           return (node: child, prefix: "");
         }
-        string prefix = isNestedList ? nextPrefixCallback().TrimStart() : nextPrefixCallback();
+        var prefix = isNestedList ? nextPrefixCallback().TrimStart() : nextPrefixCallback();
         if (prefix.Length > maxPrefixLength)
         {
           maxPrefixLength = prefix.Length;
         }
-        return (node: child, prefix: prefix);
+        return (node: child, prefix);
       })
       .ToList();
     
     if (!listItems.Any()) return;
 
-    builder.openList(
+    builder.OpenList(
       interRowLineBreaks: 1,
-      leadingLineBreaks: isNestedList ? 1 : formatOptions.leadingLineBreaks ?? 2,
+      leadingLineBreaks: isNestedList ? 1 : formatOptions.LeadingLineBreaks ?? 2,
       maxPrefixLength: maxPrefixLength,
       prefixAlign: "left"
     );
     
     foreach (var (node, prefix) in listItems)
     {
-      builder.openListItem(prefix: prefix);
+      builder.OpenListItem(prefix: prefix);
       walk(walk, new [] {node}, builder);
-      builder.closeListItem();
+      builder.CloseListItem();
     }
     
-    builder.closeList(trailingLineBreaks: isNestedList ? 1 : formatOptions.trailingLineBreaks ?? 2);
+    builder.CloseList(trailingLineBreaks: isNestedList ? 1 : formatOptions.TrailingLineBreaks ?? 2);
   }
   
   //
@@ -86,7 +87,7 @@ public class TextFormatters
   {
     var classes = new List<string>();
     var ids = new List<string>();
-    foreach (string selector in selectors)
+    foreach (var selector in selectors)
     {
       if (selector.StartsWith("."))
       {
@@ -103,7 +104,7 @@ public class TextFormatters
   //
   // Return a function that can be used to generate index markers of a specified format.
   //
-  public static Func<int, string> getOrderedListIndexFunction(string olType = "1")
+  private static Func<int, string> GetOrderedListIndexFunction(string olType = "1")
   {
     switch (olType)
     {
@@ -114,14 +115,14 @@ public class TextFormatters
       case "i":
         return (i) => Utils.NumberToRoman(i).ToLower();
       case "I":
+        // ReSharper disable once ConvertClosureToMethodGroup
         return (i) => Utils.NumberToRoman(i);
-      case "1":
       default:
         return (i) => i.ToString();
     }
   }
-  
-  public static void Build()
+
+  private static void Build()
   {
 
     //
@@ -131,13 +132,13 @@ public class TextFormatters
     {
       string GetHref()
       {
-        if (formatOptions.ignoreHref) { return ""; }
+        if (formatOptions.IgnoreHref) { return ""; }
         var href = elem.Attributes["href"]?.Value;
         if (string.IsNullOrEmpty(href)) return "";
         href = href.Replace("mailto:", "");
-        if (formatOptions.noAnchorUrl && href[0] == '#') return "";
+        if (formatOptions.NoAnchorUrl && href[0] == '#') return "";
         // path, rewriter, baseUrl, metadata, elem
-        href = pathRewrite(href, formatOptions.pathRewrite, formatOptions.baseUrl, builder.metaData,  elem);
+        href = PathRewrite(href, formatOptions.PathRewrite, formatOptions.BaseUrl, builder.MetaData,  elem);
         return href;
       }
       var href = GetHref();
@@ -148,22 +149,22 @@ public class TextFormatters
       else
       {
         var text = "";
-        builder.pushWordTransform(
+        builder.PushWordTransform(
           str => {
             if (!string.IsNullOrEmpty(str)) { text += str; }
             return str;
           }
         );
         walk(walk, elem.ChildNodes, builder);
-        builder.popWordTransform();
+        builder.PopWordTransform();
         
-        var hideSameLink = formatOptions.hideLinkHrefIfSameAsText && href == text;
+        var hideSameLink = formatOptions.HideLinkHrefIfSameAsText && href == text;
         
         if (!hideSameLink) {
-          builder.addInline(
+          builder.AddInline(
             string.IsNullOrEmpty(text)
               ? href
-              : ' ' + withBrackets(href, formatOptions.linkBrackets),
+              : ' ' + WithBrackets(href, formatOptions.LinkBrackets),
             noWordTransform: true
           );
         }
@@ -175,14 +176,14 @@ public class TextFormatters
     //
     Formatters.Add("blockquote", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(
-        leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2,
+      builder.OpenBlock(
+        leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2,
         reservedLineLength: 2
       );
       walk(walk, elem.ChildNodes, builder);
-      builder.closeBlock(
-        trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2,
-        blockTransform: str => (formatOptions.trimEmptyLines ? str.Trim('\n') : str)
+      builder.CloseBlock(
+        trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2,
+        blockTransform: str => (formatOptions.TrimEmptyLines ? str.Trim('\n') : str)
           .Split('\n')
           .Select(line => "> " + line).ToArray()
           .Join('\n'));
@@ -193,88 +194,87 @@ public class TextFormatters
     //
     Formatters.Add("dataTable", (elem, walk, builder, formatOptions) =>
     {
-      builder.openTable();
-      foreach (var child in elem.ChildNodes) walkTable(child);
+      builder.OpenTable();
+      foreach (var child in elem.ChildNodes) WalkTable(child);
       
-      builder.closeTable(
-        tableToString: (rows, rowSpacing, colSpacing) => TablePrinterUtils.tableToString(rows, formatOptions.rowSpacing ?? 0, formatOptions.colSpacing ?? 3),
-        leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2,
-        trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2
+      builder.CloseTable(
+        tableToString: (rows, rowSpacing, colSpacing) => TablePrinterUtils.TableToString(rows, formatOptions.RowSpacing ?? 0, formatOptions.ColSpacing ?? 3),
+        leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2,
+        trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2
       );
   
-      void formatCell (IElement cellNode)
+      void FormatCell (IElement cellNode)
       {
-        int colspan = 1;
+        var colspan = 1;
         if (int.TryParse(cellNode.Attributes["colspan"]?.Value ?? "1", out var testColspan))
         {
           colspan = testColspan;
         }
-        int rowspan = 1;
+        var rowspan = 1;
         if (int.TryParse(cellNode.Attributes["rowspan"]?.Value ?? "1", out var testRowspan))
         {
           rowspan = testRowspan;
         }
-        builder.openTableCell(maxColumnWidth: formatOptions.maxColumnWidth);
+        builder.OpenTableCell(maxColumnWidth: formatOptions.MaxColumnWidth);
         walk(walk, cellNode.ChildNodes, builder);
-        builder.closeTableCell(colspan: colspan, rowspan: rowspan);
+        builder.CloseTableCell(colspan: colspan, rowspan: rowspan);
       }
-      void walkTable (INode elem) {
-        if (elem.NodeType != NodeType.Element) { return; }
+      
+      void WalkTable (INode walkElem) {
+        if (walkElem.NodeType != NodeType.Element) { return; }
 
-        var htmlElement = elem as IElement;
+        var htmlElement = walkElem as IElement;
         
-        Action<IElement> formatHeaderCell = (formatOptions.uppercaseHeaderCells != false)
-          ? (IElement cellNode) => {
-            builder.pushWordTransform(str => str.ToUpper());
-            formatCell(cellNode);
-            builder.popWordTransform();
+        Action<IElement> formatHeaderCell = formatOptions.UppercaseHeaderCells
+          ? cellNode => {
+            builder.PushWordTransform(str => str.ToUpper());
+            FormatCell(cellNode);
+            builder.PopWordTransform();
           }
-          : formatCell;
-        
-        switch (htmlElement.TagName.ToLower()) {
+          : FormatCell;
+
+        if (htmlElement == null) return;
+        switch (htmlElement.TagName.ToLower())
+        {
           case "thead":
           case "tbody":
           case "tfoot":
           case "center":
-            foreach (var child in elem.ChildNodes) walkTable(child);
+            foreach (var child in walkElem.ChildNodes) WalkTable(child);
             return;
-          case "tr": {
-            builder.openTableRow();
-            foreach (var childOfTr in elem.ChildNodes) {
-              if (childOfTr.NodeType != NodeType.Element) { continue; }
-              var childElement = childOfTr as IElement;
-              
-
-              switch (childElement.TagName.ToLower())
+          case "tr":
+          {
+            builder.OpenTableRow();
+            foreach (var childOfTr in walkElem.ChildNodes)
+            {
+              if (childOfTr.NodeType != NodeType.Element)
               {
-                case "th":
-                {
-                  formatHeaderCell(childElement);
-                  break;
-                }
-                case "td":
-                {
-                  formatCell(childElement);
-                  break;
-                }
-                default:
-                  break;
-                // do nothing
+                continue;
               }
+
+              if (childOfTr is IElement childElement)
+                switch (childElement.TagName.ToLower())
+                {
+                  case "th":
+                  {
+                    formatHeaderCell(childElement);
+                    break;
+                  }
+                  case "td":
+                  {
+                    FormatCell(childElement);
+                    break;
+                  }
+                  // do nothing
+                }
             }
-            builder.closeTableRow();
+
+            builder.CloseTableRow();
             break;
           }
-          default:
-            break;
           // do nothing
         }
       }
-
-
-      
-      
-      
     });
     
     //
@@ -282,15 +282,15 @@ public class TextFormatters
     //
     Formatters.Add("heading", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
-      if (formatOptions.uppercase) {
-        builder.pushWordTransform(str => str.ToUpperInvariant());
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
+      if (formatOptions.Uppercase) {
+        builder.PushWordTransform(str => str.ToUpperInvariant());
         walk(walk, elem.ChildNodes, builder);
-        builder.popWordTransform();
+        builder.PopWordTransform();
       } else {
         walk(walk, elem.ChildNodes, builder);
       }
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
 
     //
@@ -299,18 +299,18 @@ public class TextFormatters
     Formatters.Add("horizontalLine", (elem, walk, builder, formatOptions) =>
     {
       var length = 40;
-      if (formatOptions.length is not null)
+      if (formatOptions.Length is not null)
       {
-        length = formatOptions.length.Value;
+        length = formatOptions.Length.Value;
       }
-      else if (builder.Options.wordwrap is > 0)
+      else if (builder.Options.Wordwrap is > 0)
       {
-        length = builder.Options.wordwrap.Value;
+        length = builder.Options.Wordwrap.Value;
       }
       
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
-      builder.addInline("-".Repeat(length));
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
+      builder.AddInline("-".Repeat(length));
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
     
     //
@@ -322,15 +322,15 @@ public class TextFormatters
       var src = elem.Attributes["src"]?.Value ?? "";
       if (!string.IsNullOrEmpty(src))
       {
-        src = pathRewrite(src, formatOptions.pathRewrite, formatOptions.baseUrl, builder.metaData, elem);
+        src = PathRewrite(src, formatOptions.PathRewrite, formatOptions.BaseUrl, builder.MetaData, elem);
       }
       var text = alt;
       if (!string.IsNullOrEmpty(src))
       {
         if (!string.IsNullOrEmpty(text)) text += " ";
-        text += withBrackets(src, formatOptions.linkBrackets);
+        text += WithBrackets(src, formatOptions.LinkBrackets);
       }
-      builder.addInline(text, noWordTransform: true);
+      builder.AddInline(text, noWordTransform: true);
     });
 
     //
@@ -338,7 +338,7 @@ public class TextFormatters
     //
     Formatters.Add("lineBreak", (elem, walk, builder, formatOptions) =>
     {
-      builder.addLineBreak();
+      builder.AddLineBreak();
     });
     
     //
@@ -348,9 +348,9 @@ public class TextFormatters
     {
       var start = elem.Attributes["start"]?.Value ?? "1";
       var nextIndex = int.Parse(start);
-      var indexFunction = getOrderedListIndexFunction(elem.Attributes["type"]?.Value ?? "1");
-      var nextPrefixCallback = () => " " + indexFunction(nextIndex++) + ". ";
-      formatList(elem, walk, builder, formatOptions, nextPrefixCallback);
+      var indexFunction = GetOrderedListIndexFunction(elem.Attributes["type"]?.Value ?? "1");
+      string NextPrefixCallback() => " " + indexFunction(nextIndex++) + ". ";
+      FormatList(elem, walk, builder, formatOptions, NextPrefixCallback);
     });
 
     //
@@ -358,9 +358,9 @@ public class TextFormatters
     //
     Formatters.Add("paragraph", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
       walk(walk, elem.ChildNodes, builder);
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
     
     //
@@ -368,9 +368,9 @@ public class TextFormatters
     //
     Formatters.Add("pre", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(isPre: true, leadingLineBreaks: formatOptions.leadingLineBreaks ?? 2);
+      builder.OpenBlock(isPre: true, leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 2);
       walk(walk, elem.ChildNodes, builder);
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 2);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 2);
     });
 
     //
@@ -378,9 +378,9 @@ public class TextFormatters
     //
     Formatters.Add("table", (elem, walk, builder, formatOptions) =>
     {
-      builder.openBlock(leadingLineBreaks: formatOptions.leadingLineBreaks ?? 1);
+      builder.OpenBlock(leadingLineBreaks: formatOptions.LeadingLineBreaks ?? 1);
       walk(walk, elem.ChildNodes, builder);
-      builder.closeBlock(trailingLineBreaks: formatOptions.trailingLineBreaks ?? 1);
+      builder.CloseBlock(trailingLineBreaks: formatOptions.TrailingLineBreaks ?? 1);
     });
     
     //
@@ -388,8 +388,8 @@ public class TextFormatters
     //
     Formatters.Add("unorderedList", (elem, walk, builder, formatOptions) =>
     {
-      var prefix = formatOptions.itemPrefix ?? " * ";
-      formatList(elem, walk, builder, formatOptions, () => prefix);
+      var prefix = formatOptions.ItemPrefix;
+      FormatList(elem, walk, builder, formatOptions, () => prefix);
     });
 
     //
@@ -397,7 +397,7 @@ public class TextFormatters
     //
     Formatters.Add("wbr", (elem, walk, builder, formatOptions) =>
     {
-      builder.addWordBreakOpportunity();
+      builder.AddWordBreakOpportunity();
     });
 
 

@@ -5,11 +5,11 @@ namespace UnDotNet.HtmlToText;
 */
 internal class InlineTextBuilder
 {
-    private List<List<string>> lines;
-    private List<string> nextLineWords;
-    private int nextLineAvailableChars;
-    private string wrapCharacters;
-    private bool forceWrapOnLimit;
+    private readonly List<List<string>> _lines;
+    private List<string> _nextLineWords;
+    private int _nextLineAvailableChars;
+    private readonly string _wrapCharacters;
+    private readonly bool _forceWrapOnLimit;
     public bool WordBreakOpportunity { get; set; }
 
     public int MaxLineLength { get; }
@@ -27,12 +27,12 @@ internal class InlineTextBuilder
  */
     public InlineTextBuilder(Options options, int maxLineLength = 0)
     {
-        this.lines = new List<List<string>>();
-        this.nextLineWords = new List<string>();
-        this.MaxLineLength = maxLineLength != 0 ? maxLineLength : options.wordwrap is null or 0 ? int.MaxValue : options.wordwrap.Value;
-        this.nextLineAvailableChars = this.MaxLineLength;
-        this.wrapCharacters = options.longWordSplit.wrapCharacters ?? "";
-        this.forceWrapOnLimit = options.longWordSplit.forceWrapOnLimit ?? false;
+        this._lines = new List<List<string>>();
+        this._nextLineWords = new List<string>();
+        this.MaxLineLength = maxLineLength != 0 ? maxLineLength : options.Wordwrap is null or 0 ? int.MaxValue : options.Wordwrap.Value;
+        this._nextLineAvailableChars = this.MaxLineLength;
+        this._wrapCharacters = options.LongWordSplit.WrapCharacters ?? "";
+        this._forceWrapOnLimit = options.LongWordSplit.ForceWrapOnLimit ?? false;
         this.StashedSpace = false;
         this.WordBreakOpportunity = false;
     }
@@ -45,35 +45,35 @@ internal class InlineTextBuilder
  */
     public void PushWord(string word, bool noWrap = false)
     {
-        if (this.nextLineAvailableChars <= 0 && !noWrap)
+        if (this._nextLineAvailableChars <= 0 && !noWrap)
         {
             this.StartNewLine();
         }
-        bool isLineStart = this.nextLineWords.Count == 0;
-        int cost = word.Length + (isLineStart ? 0 : 1);
+        var isLineStart = this._nextLineWords.Count == 0;
+        var cost = word.Length + (isLineStart ? 0 : 1);
         // Fits into available budget
-        if ((cost <= this.nextLineAvailableChars) || noWrap)
+        if ((cost <= this._nextLineAvailableChars) || noWrap)
         {
-            this.nextLineWords.Add(word);
-            this.nextLineAvailableChars -= cost;
+            this._nextLineWords.Add(word);
+            this._nextLineAvailableChars -= cost;
         }
         // Does not fit - try to split the word
         else
         {
                 
             // The word is moved to a new line - prefer to wrap between words.
-            List<string> words = this.SplitLongWord(word);
+            var words = this.SplitLongWord(word);
             if (!isLineStart)
             {
                 this.StartNewLine();
             }
-            this.nextLineWords.Add(words[0]);
-            this.nextLineAvailableChars -= words[0].Length;
-            foreach (string part in words.Skip(1))
+            this._nextLineWords.Add(words[0]);
+            this._nextLineAvailableChars -= words[0].Length;
+            foreach (var part in words.Skip(1))
             {
                 this.StartNewLine();
-                this.nextLineWords.Add(part);
-                this.nextLineAvailableChars -= part.Length;
+                this._nextLineWords.Add(part);
+                this._nextLineAvailableChars -= part.Length;
             }
         }
     }
@@ -84,14 +84,14 @@ internal class InlineTextBuilder
  *
  * @returns { string }
  */
-    public string? PopWord()
+    private string? PopWord()
     {
-        if (nextLineWords.Count == 0) return null;
-        var lastWord = nextLineWords[^1];
-        nextLineWords.RemoveAt(nextLineWords.Count - 1);
-        bool isLineStart = this.nextLineWords.Count == 0;
-        int cost = lastWord.Length + (isLineStart ? 0 : 1);
-        this.nextLineAvailableChars += cost;
+        if (_nextLineWords.Count == 0) return null;
+        var lastWord = _nextLineWords[^1];
+        _nextLineWords.RemoveAt(_nextLineWords.Count - 1);
+        var isLineStart = this._nextLineWords.Count == 0;
+        var cost = lastWord.Length + (isLineStart ? 0 : 1);
+        this._nextLineAvailableChars += cost;
         return lastWord;
     }
 
@@ -104,14 +104,14 @@ internal class InlineTextBuilder
  */
     public void ConcatWord(string word, bool noWrap = false)
     {
-        if (this.WordBreakOpportunity && word.Length > this.nextLineAvailableChars)
+        if (this.WordBreakOpportunity && word.Length > this._nextLineAvailableChars)
         {
             this.PushWord(word, noWrap);
             this.WordBreakOpportunity = false;
         }
         else
         {
-            string lastWord = this.PopWord();
+            var lastWord = this.PopWord();
             this.PushWord((lastWord != null) ? lastWord + word : word, noWrap);
         }
     }
@@ -123,16 +123,16 @@ internal class InlineTextBuilder
  */
     public void StartNewLine(int n = 1)
     {
-        this.lines.Add(this.nextLineWords);
+        this._lines.Add(this._nextLineWords);
         if (n > 1)
         {
-            for (int i = 0; i < n - 1; i++)
+            for (var i = 0; i < n - 1; i++)
             {
-                this.lines.Add(new List<string>());
+                this._lines.Add(new List<string>());
             }
         }
-        this.nextLineWords = new List<string>();
-        this.nextLineAvailableChars = this.MaxLineLength;
+        this._nextLineWords = new List<string>();
+        this._nextLineAvailableChars = this.MaxLineLength;
     }
 
     /**
@@ -142,14 +142,14 @@ internal class InlineTextBuilder
  */
     public bool IsEmpty()
     {
-        return this.lines.Count == 0 && this.nextLineWords.Count == 0;
+        return this._lines.Count == 0 && this._nextLineWords.Count == 0;
     }
 
     public void Clear()
     {
-        this.lines.Clear();
-        this.nextLineWords.Clear();
-        this.nextLineAvailableChars = this.MaxLineLength;
+        this._lines.Clear();
+        this._nextLineWords.Clear();
+        this._nextLineAvailableChars = this.MaxLineLength;
     }
 
     /**
@@ -159,12 +159,12 @@ internal class InlineTextBuilder
  */
     public override string ToString()
     {
-        List<string> result = new List<string>();
-        foreach (List<string> words in this.lines)
+        var result = new List<string>();
+        foreach (var words in this._lines)
         {
             result.Add(string.Join(" ", words));
         }
-        result.Add(string.Join(" ", this.nextLineWords));
+        result.Add(string.Join(" ", this._nextLineWords));
         return string.Join("\n", result);
     }
 
@@ -176,16 +176,16 @@ internal class InlineTextBuilder
  * @param   { string }   word Input word.
  * @returns { string[] }      Parts of the word.
  */
-    public List<string> SplitLongWord(string word)
+    private List<string> SplitLongWord(string word)
     {
-        List<string> parts = new List<string>();
-        int idx = 0;
+        var parts = new List<string>();
+        var idx = 0;
         while (word.Length > this.MaxLineLength)
         {
-            string firstLine = word.Substring(0, this.MaxLineLength);
-            string remainingChars = word.Substring(this.MaxLineLength);
+            var firstLine = word.Substring(0, this.MaxLineLength);
+            var remainingChars = word.Substring(this.MaxLineLength);
                 
-            int splitIndex = wrapCharacters?.Length > 0 ? firstLine.LastIndexOf(wrapCharacters[idx]) : -1;
+            var splitIndex = _wrapCharacters.Length > 0 ? firstLine.LastIndexOf(_wrapCharacters[idx]) : -1;
             if (splitIndex > -1)
             {
                 word = firstLine.Substring(splitIndex + 1) + remainingChars;
@@ -194,13 +194,13 @@ internal class InlineTextBuilder
             else
             {
                 idx++;
-                if (idx < this.wrapCharacters.Length)
+                if (idx < this._wrapCharacters.Length)
                 {
                     word = firstLine + remainingChars;
                 }
                 else
                 {
-                    if (this.forceWrapOnLimit)
+                    if (this._forceWrapOnLimit)
                     {
                         parts.Add(firstLine);
                         word = remainingChars;

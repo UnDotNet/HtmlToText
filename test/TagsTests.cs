@@ -1,5 +1,4 @@
 namespace UnDotNet.HtmlToText.Tests;
 
 [TestClass]
-public partial class TagsTests
-{ }
+public partial class TagsTests;

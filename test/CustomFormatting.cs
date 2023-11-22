@@ -1,129 +1,145 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
+// ReSharper disable UnusedParameter.Local
 
 namespace UnDotNet.HtmlToText.Tests;
 
 [TestClass]
 public class CustomFormattingTests
 {
-    private string htmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
+    private static string HtmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
         new HtmlToTextConverter().Convert(html, options, metadata);
     
     [TestMethod]
     public void ShouldAllowToOverrideFormattingOfExistingTags()
     {
-        string html = "<h1>TeSt</h1><h1>mOrE tEsT</h1>";
-        var options = new HtmlToTextOptions();
-        options.formatters["heading"] = (elem, walk, builder, formatOptions) =>
+        const string html = "<h1>TeSt</h1><h1>mOrE tEsT</h1>";
+        var options = new HtmlToTextOptions
         {
-            builder.openBlock(leadingLineBreaks: 2);
-            builder.pushWordTransform(str => str.ToLower());
-            walk(walk, elem.ChildNodes, builder);
-            builder.popWordTransform();
-            builder.closeBlock(trailingLineBreaks: 2, str => 
+            Formatters =
             {
-                string line = new string('=', str.Length);
-                return $"{line}\n{str}\n{line}";
-            });
-        }; 
-        string expected = "====\ntest\n====\n\n=========\nmore test\n=========";
-        htmlToText(html, options).ShouldBe(expected);
+                ["heading"] = (elem, walk, builder, formatOptions) =>
+                {
+                    builder.OpenBlock(leadingLineBreaks: 2);
+                    builder.PushWordTransform(str => str.ToLower());
+                    walk(walk, elem.ChildNodes, builder);
+                    builder.PopWordTransform();
+                    builder.CloseBlock(trailingLineBreaks: 2, str => 
+                    {
+                        var line = new string('=', str.Length);
+                        return $"{line}\n{str}\n{line}";
+                    });
+                }
+            }
+        };
+        var expected = "====\ntest\n====\n\n=========\nmore test\n=========";
+        HtmlToText(html, options).ShouldBe(expected);
     }
 
     [TestMethod]
     public void ShouldAllowToSkipTagsWithDummyFormattingFunction()
     {
-        string html = "<ruby>漢<rt>かん</rt>字<rt>じ</rt></ruby>";
-        string expected = "漢字";
+        var html = "<ruby>漢<rt>かん</rt>字<rt>じ</rt></ruby>";
+        var expected = "漢字";
         var options = new HtmlToTextOptions();
-        options.selectors.Add(new Selector() {selector = "rt", format = "skip"});
-        htmlToText(html, options).ShouldBe(expected);
+        options.Selectors.Add(new Selector() {Identifier = "rt", Format = "skip"});
+        HtmlToText(html, options).ShouldBe(expected);
     }
 
     [TestMethod]
     public void ShouldAllowToDefineBasicSupportForInlineTags()
     {
-        string html = @"<p>a <span>b </span>c<span>  d  </span>e</p>";
-        string expected = "a b c d e";
+        var html = @"<p>a <span>b </span>c<span>  d  </span>e</p>";
+        var expected = "a b c d e";
         var options = new HtmlToTextOptions();
-        options.selectors.Add(new Selector() {selector = "span", format = "inline"});
-        htmlToText(html, options).ShouldBe(expected);
+        options.Selectors.Add(new Selector() {Identifier = "span", Format = "inline"});
+        HtmlToText(html, options).ShouldBe(expected);
     }
     
     [TestMethod]
     public void ShouldAllowToDefineBasicSupportForBlockLevelTags()
     {
-        string html = @"<widget><gadget>a</gadget><fidget>b</fidget></widget>c<budget>d</budget>e";
-        string expected = "a\n\nb\n\nc\n\nd\n\ne";
+        var html = @"<widget><gadget>a</gadget><fidget>b</fidget></widget>c<budget>d</budget>e";
+        var expected = "a\n\nb\n\nc\n\nd\n\ne";
         var options = new HtmlToTextOptions();
-        options.selectors.Add(new Selector() {selector = "budget", format = "block"});
-        options.selectors.Add(new Selector() {selector = "fidget", format = "block"});
-        options.selectors.Add(new Selector() {selector = "gadget", format = "block"});
-        options.selectors.Add(new Selector() {selector = "widget", format = "block"});
-        htmlToText(html, options).ShouldBe(expected);
+        options.Selectors.Add(new Selector() {Identifier = "budget", Format = "block"});
+        options.Selectors.Add(new Selector() {Identifier = "fidget", Format = "block"});
+        options.Selectors.Add(new Selector() {Identifier = "gadget", Format = "block"});
+        options.Selectors.Add(new Selector() {Identifier = "widget", Format = "block"});
+        HtmlToText(html, options).ShouldBe(expected);
     }
 
     [TestMethod]
     public void ShouldAllowToAddSupportForDifferentTags()
     {
-        string html = "<div><foo>foo<br/>content</foo><bar src=\"bar.src\" /></div>";
-        string expected = "[FOO]foo\ncontent[/FOO]\n[BAR src=\"bar.src\"]";
+        var html = "<div><foo>foo<br/>content</foo><bar src=\"bar.src\" /></div>";
+        var expected = "[FOO]foo\ncontent[/FOO]\n[BAR src=\"bar.src\"]";
         var options = new HtmlToTextOptions();
 
-        options.selectors.Add(new Selector() {selector = "foo", format = "formatFoo"});
-        options.selectors.Add(new Selector() {selector = "bar", format = "formatBar"});
+        options.Selectors.Add(new Selector() {Identifier = "foo", Format = "formatFoo"});
+        options.Selectors.Add(new Selector() {Identifier = "bar", Format = "formatBar"});
         
-        options.formatters["formatFoo"] = (elem, walk, builder, formatOptions) =>
+        options.Formatters["formatFoo"] = (elem, walk, builder, formatOptions) =>
         {
-            builder.openBlock(leadingLineBreaks: 1);
+            builder.OpenBlock(leadingLineBreaks: 1);
             walk(walk, elem.ChildNodes, builder);
-            builder.popWordTransform();
-            builder.closeBlock(trailingLineBreaks: 1, str => $"[FOO]{str}[/FOO]");
+            builder.PopWordTransform();
+            builder.CloseBlock(trailingLineBreaks: 1, str => $"[FOO]{str}[/FOO]");
         };
-        options.formatters["formatBar"] = (elem, walk, builder, formatOptions) =>
+        options.Formatters["formatBar"] = (elem, walk, builder, formatOptions) =>
         {
-            builder.addInline($"[BAR src=\"{elem.Attributes["src"]?.Value}\"]", noWordTransform: true);
+            builder.AddInline($"[BAR src=\"{elem.Attributes["src"]?.Value}\"]", noWordTransform: true);
         };
-        htmlToText(html, options).ShouldBe(expected);
+        HtmlToText(html, options).ShouldBe(expected);
     }
 
     [TestMethod]
     public void ShouldAllowToCallExistingFormattersFromOtherFormatters()
     {
-        string html = "<div>Useful</div><div>Advertisement</div><article>Handy <section><div>info</div><div>Advertisement</div></section></article><article>ads galore</article>";
+        var html = "<div>Useful</div><div>Advertisement</div><article>Handy <section><div>info</div><div>Advertisement</div></section></article><article>ads galore</article>";
         
-        var options = new HtmlToTextOptions();
-        
-        options.Div.format = "adFreeBlock";
-        options.Article.format = "adFreeBlock";
-        options.Article.options.leadingLineBreaks = 4;
-        options.Article.options.ExtraOptions = new Dictionary<string, object>()
+        var options = new HtmlToTextOptions
         {
-            { "filterRegExp", new Regex("^ad", RegexOptions.IgnoreCase) }
-        }; 
-        
-        options.formatters["adFreeBlock"] = (elem, walk, builder, formatOptions) =>
-        {
-            Regex regExp = new Regex("advertisement", RegexOptions.IgnoreCase);
-            if (formatOptions.ExtraOptions.ContainsKey("filterRegExp"))
+            Div =
             {
-                regExp = (Regex)formatOptions.ExtraOptions["filterRegExp"]; 
-            }
-            // Regex regExp = formatOptions.FilterRegExp ?? new Regex("advertisement", RegexOptions.IgnoreCase);
-            if (elem.ChildNodes.Any(ch => ch.NodeType == NodeType.Text && regExp.IsMatch(ch.NodeValue)))
+                Format = "adFreeBlock"
+            },
+            Article =
             {
-                // do nothing
-            }
-            else
-            {
-                var blockFormatter = builder.Options.formatters["block"];
-                if (blockFormatter != null)
+                Format = "adFreeBlock",
+                Options =
                 {
-                    blockFormatter(elem, walk, builder, formatOptions);
+                    LeadingLineBreaks = 4,
+                    ExtraOptions = new Dictionary<string, object>()
+                    {
+                        { "filterRegExp", new Regex("^ad", RegexOptions.IgnoreCase) }
+                    }
+                }
+            },
+            Formatters =
+            {
+                ["adFreeBlock"] = (elem, walk, builder, formatOptions) =>
+                {
+                    var regExp = new Regex("advertisement", RegexOptions.IgnoreCase);
+                    if (formatOptions.ExtraOptions.TryGetValue("filterRegExp", out var option))
+                    {
+                        regExp = (Regex)option; 
+                    }
+                    // Regex regExp = formatOptions.FilterRegExp ?? new Regex("advertisement", RegexOptions.IgnoreCase);
+                    if (elem.ChildNodes.Any(ch => ch.NodeType == NodeType.Text && regExp.IsMatch(ch.NodeValue)))
+                    {
+                        // do nothing
+                    }
+                    else
+                    {
+                        var blockFormatter = builder.Options.Formatters["block"];
+                        blockFormatter(elem, walk, builder, formatOptions);
+                    }
                 }
             }
-        }; 
-        string expected = "Useful\n\n\n\nHandy\ninfo";
-        htmlToText(html, options).ShouldBe(expected);
+        };
+
+        var expected = "Useful\n\n\n\nHandy\ninfo";
+        HtmlToText(html, options).ShouldBe(expected);
     }
 }

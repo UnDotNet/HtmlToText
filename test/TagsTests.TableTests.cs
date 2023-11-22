@@ -9,74 +9,74 @@ public partial class TagsTests
     [TestClass]
     public class TablesTests
     {
-        private string htmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
+        private static string HtmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
             new HtmlToTextConverter().Convert(html, options, metadata);
 
         [TestMethod]
         public void ShouldHandleBasicTable()
         {
-            string html = "Good morning Jacob, " +
-                          "<TABLE>" +
-                          "<TBODY>" +
-                          "<TR>" +
-                          "<TD>Lorem ipsum dolor sit amet.</TD>" +
-                          "</TR>" +
-                          "</TBODY>" +
-                          "</TABLE>";
+            var html = "Good morning Jacob, " +
+                       "<TABLE>" +
+                       "<TBODY>" +
+                       "<TR>" +
+                       "<TD>Lorem ipsum dolor sit amet.</TD>" +
+                       "</TR>" +
+                       "</TBODY>" +
+                       "</TABLE>";
 
-            string expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
+            var expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
 
             var options = new HtmlToTextOptions();
             //options.Table.format = "dataTable";
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldHandleBasicDataTable()
         {
-            string html = "Good morning Jacob, " +
-                          "<TABLE>" +
-                          "<TBODY>" +
-                          "<TR>" +
-                          "<TD>Lorem ipsum dolor sit amet.</TD>" +
-                          "</TR>" +
-                          "</TBODY>" +
-                          "</TABLE>";
+            var html = "Good morning Jacob, " +
+                       "<TABLE>" +
+                       "<TBODY>" +
+                       "<TR>" +
+                       "<TD>Lorem ipsum dolor sit amet.</TD>" +
+                       "</TR>" +
+                       "</TBODY>" +
+                       "</TABLE>";
 
-            string expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
+            var expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            htmlToText(html, options).ShouldBe(expected);
+            options.Table.Format = "dataTable";
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldHandleBasicDataTableWithTwoRows()
         {
-            string html = "Good morning Jacob, " +
-                          "<TABLE>" +
-                          "<TBODY>" +
-                          "<TR>" +
-                          "<TD>Lorem ipsum dolor sit amet.</TD>" +
-                          "</TR>" +
-                          "<TR>" +
-                          "<TD>Row two.</TD>" +
-                          "</TR>" +
-                          "</TBODY>" +
-                          "</TABLE>";
+            var html = "Good morning Jacob, " +
+                       "<TABLE>" +
+                       "<TBODY>" +
+                       "<TR>" +
+                       "<TD>Lorem ipsum dolor sit amet.</TD>" +
+                       "</TR>" +
+                       "<TR>" +
+                       "<TD>Row two.</TD>" +
+                       "</TR>" +
+                       "</TBODY>" +
+                       "</TABLE>";
 
-            string expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.\nRow two.";
+            var expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.\nRow two.";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            htmlToText(html, options).ShouldBe(expected);
+            options.Table.Format = "dataTable";
+            HtmlToText(html, options).ShouldBe(expected);
         }
     
     
         [TestMethod]
         public void ShouldHandleTwoColumnTable()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td>a</td><td>a</td>
@@ -89,21 +89,21 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "a   a\n" +
                 "b   b\n" +
                 "c   c";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldHandleThreeColumnTable()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td>a</td><td>a</td><td>a</td>
@@ -116,43 +116,43 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "a   a   a\n" +
                 "b   b   b\n" +
                 "c   c   c";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
     
         [TestMethod]
         public void ShouldHandleCenterTagInTables()
         {
-            string html = "Good morning Jacob, " +
-                          "<TABLE>" +
-                          "<CENTER>" +
-                          "<TBODY>" +
-                          "<TR>" +
-                          "<TD>Lorem ipsum dolor sit amet.</TD>" +
-                          "</TR>" +
-                          "</CENTER>" +
-                          "</TBODY>" +
-                          "</TABLE>";
+            var html = "Good morning Jacob, " +
+                       "<TABLE>" +
+                       "<CENTER>" +
+                       "<TBODY>" +
+                       "<TR>" +
+                       "<TD>Lorem ipsum dolor sit amet.</TD>" +
+                       "</TR>" +
+                       "</CENTER>" +
+                       "</TBODY>" +
+                       "</TABLE>";
 
-            string expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
+            var expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            htmlToText(html, options).ShouldBe(expected);
+            options.Table.Format = "dataTable";
+            HtmlToText(html, options).ShouldBe(expected);
         }
     
         [TestMethod]
         public void ShouldHandleTwoColumnWithColspanTable()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td colspan=""2"">a</td>
@@ -165,21 +165,21 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "a\n" +
                 "b   b\n" +
                 "c   c";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldHandleThreeColumnTableWithRowSpan()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td>b</td><td rowspan=""2"">b</td><td>b</td>
@@ -189,41 +189,41 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "b   b   b\n" +
                 "c       c";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
 
         [TestMethod]
         public void ShouldHandleNonIntegerColspanOnTdElementGracefully()
         {
-            string html = "Good morning Jacob," +
-                          "<table>" +
-                          "<tbody>" +
-                          "<tr>" +
-                          "<td colspan=\"abc\">Lorem ipsum dolor sit amet.</td>" +
-                          "</tr>" +
-                          "</tbody>" +
-                          "</table>";
+            var html = "Good morning Jacob," +
+                       "<table>" +
+                       "<tbody>" +
+                       "<tr>" +
+                       "<td colspan=\"abc\">Lorem ipsum dolor sit amet.</td>" +
+                       "</tr>" +
+                       "</tbody>" +
+                       "</table>";
 
-            string expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
+            var expected = "Good morning Jacob,\n\nLorem ipsum dolor sit amet.";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
 
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
-        public void ShouldHandleTablesWithColspansAndRowspans()
+        public void ShouldHandleTablesWithColSpansAndRowSpans()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td colspan=""2"" rowspan=""3"">aa<br/>aa<br/>aa</td>
@@ -259,7 +259,7 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "aa   b   cccc      d\n" +
                 "aa   b   cccc      d\n" +
                 "aa   b   ee   ff   d\n" +
@@ -270,15 +270,15 @@ public partial class TagsTests
                 "nn   qqqq         pp";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
 
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldSupportCustomSpacingForTables()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td colspan=""2"" rowspan=""2"">aa<br/>aa</td>
@@ -294,7 +294,7 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "aa  b\n" +
                 "aa\n" +
                 "\n" +
@@ -304,17 +304,17 @@ public partial class TagsTests
                 "d e f";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            options.Table.options.colSpacing = 1;
-            options.Table.options.rowSpacing = 2;
+            options.Table.Format = "dataTable";
+            options.Table.Options.ColSpacing = 1;
+            options.Table.Options.RowSpacing = 2;
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldSupportZeroColumnSpacing()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td colspan=""2"" rowspan=""2"">aa<br/>aa</td>
@@ -330,22 +330,22 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "aab\n" +
                 "aac\n" +
                 "def";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            options.Table.options.colSpacing = 0;
+            options.Table.Format = "dataTable";
+            options.Table.Options.ColSpacing = 0;
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldProperlyAlignColumnsInTablesWithTheadTfoot()
         {
-            string html = @"
+            var html = @"
 <table>
     <thead>
         <tr>
@@ -368,21 +368,21 @@ public partial class TagsTests
     </tfoot>
 </table>";
 
-            string expected =
+            var expected =
                 "aaaaaaaaa   b\n" +
                 "ccc         ddd   eee\n" +
                 "f                 ggggggggg";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
 
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldRenderBlockLevelElementsInsideTableCellsProperly()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td><h1>hEaDeR</h1></td>
@@ -401,22 +401,22 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "HEADER                                 > A quote\n" +
                 "                                       > from somewhere.\n" +
                 "   preformatted...        ...text       1. list item one\n" +
                 "                                        2. list item two";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
 
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldWrapTableContentsToCustomMaxColumnWidth()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr>
         <td>short</td>
@@ -430,7 +430,7 @@ public partial class TagsTests
     </tr>
 </table>";
 
-            string expected =
+            var expected =
                 "short   short                           Lorem ipsum dolor sit amet,\n" +
                 "                                        consectetur adipiscing elit,\n" +
                 "                                        sed do eiusmod tempor\n" +
@@ -450,16 +450,16 @@ public partial class TagsTests
                 "        mollit anim id est laborum.";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            options.Table.options.maxColumnWidth = 30;
+            options.Table.Format = "dataTable";
+            options.Table.Options.MaxColumnWidth = 30;
         
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldNotMissContentInTablesWithVariableNumberOfCellsPerRow()
         {
-            string html = @"
+            var html = @"
 <table>
     <tr><td>a</td></tr>
     <tr><td>b</td><td>c</td></tr>
@@ -467,12 +467,12 @@ public partial class TagsTests
     <tr><td>d</td></tr>
 </table>";
 
-            string expected = "a\nb   c\n\nd";
+            var expected = "a\nb   c\n\nd";
 
             var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
+            options.Table.Format = "dataTable";
 
-            htmlToText(html, options).ShouldBe(expected);
+            HtmlToText(html, options).ShouldBe(expected);
         }
     }    
     

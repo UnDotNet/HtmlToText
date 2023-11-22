@@ -1,4 +1,5 @@
 
+// ReSharper disable UnusedParameter.Local
 namespace UnDotNet.HtmlToText.Tests;
 
 public partial class TagsTests
@@ -8,138 +9,143 @@ public partial class TagsTests
     public class ATests
     {
 
-        private string htmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
+        private static string HtmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
             new HtmlToTextConverter().Convert(html, options, metadata);
         
         
         [TestMethod]
         public void ShouldDecodeHtmlAttributeEntitiesFromHref()
         {
-            string html = "<a href=\"/foo?a&#x3D;b\">test</a>";
-            string expected = "test [/foo?a=b]";
-            htmlToText(html).ShouldBe(expected);
+            var html = "<a href=\"/foo?a&#x3D;b\">test</a>";
+            var expected = "test [/foo?a=b]";
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldNotInsertNullBytes()
         {
-            string html = "<a href=\"some-url?a=b&amp;b=c\">Testing &amp; Done</a>";
-            string expected = "Testing & Done [some-url?a=b&b=c]";
-            htmlToText(html).ShouldBe(expected);
+            var html = "<a href=\"some-url?a=b&amp;b=c\">Testing &amp; Done</a>";
+            var expected = "Testing & Done [some-url?a=b&b=c]";
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldUpdateRelativelySourcedLinksWithBaseUrl()
         {
-            string html = "<a href=\"/test.html\">test</a>";
+            var html = "<a href=\"/test.html\">test</a>";
             var options = new HtmlToTextOptions();
-            options.A.options.baseUrl = "https://example.com";
-            string expected = "test [https://example.com/test.html]";
-            htmlToText(html, options).ShouldBe(expected);
+            options.A.Options.BaseUrl = "https://example.com";
+            var expected = "test [https://example.com/test.html]";
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldStripMailtoFromEmailLinks()
         {
-            string html = "<a href=\"mailto:foo@example.com\">email me</a>";
-            string expected = "email me [foo@example.com]";
-            htmlToText(html).ShouldBe(expected);
+            var html = "<a href=\"mailto:foo@example.com\">email me</a>";
+            var expected = "email me [foo@example.com]";
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldReturnLinkWithBracketsByDefault()
         {
-            string html = "<a href=\"http://my.link\">test</a>";
-            string expected = "test [http://my.link]";
-            htmlToText(html).ShouldBe(expected);
+            var html = "<a href=\"https://my.link\">test</a>";
+            var expected = "test [https://my.link]";
+            HtmlToText(html).ShouldBe(expected);
         }
     
         [TestMethod]
         public void ShouldReturnLinkWithoutBracketsIfLinkBracketsIsSetToFalse()
         {
-            string html = "<a href=\"http://my.link\">test</a>";
-            string expected = "test http://my.link";
+            var html = "<a href=\"https://my.link\">test</a>";
+            var expected = "test https://my.link";
             var options = new HtmlToTextOptions();
-            options.A.options.linkBrackets = null;
-            htmlToText(html, options).ShouldBe(expected);
+            options.A.Options.LinkBrackets = null;
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldReturnLinkWithoutBracketsIfLinkBracketsIsSetToEmptyStrings()
         {
-            string html = "<a href=\"http://my.link\">test</a>";
-            string expected = "test http://my.link";
+            var html = "<a href=\"https://my.link\">test</a>";
+            var expected = "test https://my.link";
             var options = new HtmlToTextOptions();
-            options.A.options.linkBrackets!.left = "";
-            options.A.options.linkBrackets!.right = "";
-            htmlToText(html, options).ShouldBe(expected);
+            options.A.Options.LinkBrackets!.Left = "";
+            options.A.Options.LinkBrackets!.Right = "";
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldReturnLinkWithCustomBrackets()
         {
-            string html = "<a href=\"http://my.link\">test</a>";
-            string expected = "test ===> http://my.link <===";
+            var html = "<a href=\"https://my.link\">test</a>";
+            var expected = "test ===> https://my.link <===";
             var options = new HtmlToTextOptions();
-            options.A.options.linkBrackets!.left = "===> ";
-            options.A.options.linkBrackets!.right = " <===";
-            htmlToText(html, options).ShouldBe(expected);
+            options.A.Options.LinkBrackets!.Left = "===> ";
+            options.A.Options.LinkBrackets!.Right = " <===";
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldNotReturnLinkForAnchorIfNoAnchorUrlIsSetToTrue()
         {
-            string html = "<a href=\"#link\">test</a>";
+            var html = "<a href=\"#link\">test</a>";
             var options = new HtmlToTextOptions();
-            options.A.options.noAnchorUrl = true;
-            htmlToText(html, options).ShouldBe("test");
+            options.A.Options.NoAnchorUrl = true;
+            HtmlToText(html, options).ShouldBe("test");
         }
 
         [TestMethod]
         public void ShouldReturnLinkForAnchorIfNoAnchorUrlIsSetToFalse()
         {
-            string html = "<a href=\"#link\">test</a>";
-            string expected = "test [#link]";
+            var html = "<a href=\"#link\">test</a>";
+            var expected = "test [#link]";
             var options = new HtmlToTextOptions();
-            options.A.options.noAnchorUrl = false;
-            htmlToText(html, options).ShouldBe(expected);
+            options.A.Options.NoAnchorUrl = false;
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldNotUppercaseLinksInsideHeadings()
         {
-            string html = /*html*/"<h1><a href=\"http://example.com\">Heading</a></h1>";
-            string expected = "HEADING [http://example.com]";
-            htmlToText(html).ShouldBe(expected);
+            var html = /*html*/"<h1><a href=\"https://example.com\">Heading</a></h1>";
+            var expected = "HEADING [https://example.com]";
+            HtmlToText(html).ShouldBe(expected);
         }
     
         [TestMethod]
         public void ShouldNotUppercaseLinksInsideTableHeaderCells()
         {
-            string html = /*html*/"""
-                                    <table>
-                                      <tr>
-                                        <th>Header cell 1</th>
-                                        <th><a href="http://example.com">Header cell 2</a></th>
-                                        <td><a href="http://example.com">Regular cell</a></td>
-                                      </tr>
-                                    </table>
-                                  """;
-            string expected = "HEADER CELL 1   HEADER CELL 2 [http://example.com]   Regular cell [http://example.com]";
-            var options = new HtmlToTextOptions();
-            options.Table.format = "dataTable";
-            htmlToText(html, options).ShouldBe(expected);
+            var html = /*html*/"""
+                                 <table>
+                                   <tr>
+                                     <th>Header cell 1</th>
+                                     <th><a href="https://example.com">Header cell 2</a></th>
+                                     <td><a href="https://example.com">Regular cell</a></td>
+                                   </tr>
+                                 </table>
+                               """;
+            var expected = "HEADER CELL 1   HEADER CELL 2 [https://example.com]   Regular cell [https://example.com]";
+            var options = new HtmlToTextOptions
+            {
+                Table =
+                {
+                    Format = "dataTable"
+                }
+            };
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldRewriteLinkHrefPathWithProvidedMetadata()
         {
-            string html = "<a href=\"/test.html\">test</a>";
+            var html = "<a href=\"/test.html\">test</a>";
+            var expected = "test [https://example.com/foo/bar/test.html]";
             var options = new HtmlToTextOptions();
-            options.A.options.baseUrl = "https://example.com";
-            options.A.options.pathRewrite = (path, meta, elem) => meta is null ? null : meta["path"] + path;
-            string expected = "test [https://example.com/foo/bar/test.html]";
-            htmlToText(html, options, new () { {"path", "/foo/bar" }}).ShouldBe(expected);
+            options.A.Options.BaseUrl = "https://example.com";
+            options.A.Options.PathRewrite = (path, meta, elem) => meta is null ? null : meta["path"] + path;
+            HtmlToText(html, options, new Dictionary<string, string> { {"path", "/foo/bar" }}).ShouldBe(expected);
         }        
     }
 }

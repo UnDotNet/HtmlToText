@@ -15,23 +15,23 @@ public class HtmlToTextConverter
         if (html is null) return "";
         opts ??= new();
         
-        var maxInputLength = opts.limits.maxInputLength;
+        var maxInputLength = opts.Limits.MaxInputLength;
         if (maxInputLength > 0 && html.Length > maxInputLength)
         {
             Trace.WriteLine($"Input length {html.Length} is above allowed limit of {maxInputLength}. Truncating without ellipsis.");
             html = html.Substring(0, maxInputLength);
         }
         
-        opts.formatters = DictionaryExtensions.MergeValues<string, FormatCallback>(null, GenericFormatters.Formatters, TextFormatters.Formatters, opts.formatters);
+        opts.Formatters = DictionaryExtensions.MergeValues<string, FormatCallback>(null, GenericFormatters.Formatters, TextFormatters.Formatters, opts.Formatters);
         
         // selectors
         CssSelectorParser cssparser = new();
 
         Dictionary<ISelector, Selector> rules = new();
         
-        foreach (var selector in opts.selectors)
+        foreach (var selector in opts.Selectors)
         {
-            var cssselector = cssparser.ParseSelector(selector.selector);
+            var cssselector = cssparser.ParseSelector(selector.Identifier);
             if (cssselector is not null)
             {
                 rules.Add(cssselector, selector);
@@ -50,19 +50,19 @@ public class HtmlToTextConverter
             doc = p.ParseDocument($"<html><body>{html}</body></html>");
         }
 
-        maxDepth = opts.limits?.maxDepth ?? int.MaxValue;
+        _maxDepth = opts.Limits?.MaxDepth ?? int.MaxValue;
 
-        if (opts.BaseElements.selectors.Count > 0)
+        if (opts.BaseElements.Selectors.Count > 0)
         {
-            if (opts.BaseElements.orderBy is not "selectors")
+            if (opts.BaseElements.OrderBy is not "selectors")
             {
-                var allBases = opts.BaseElements.selectors.ToArray().Join(", ");
-                var currentBase = doc.QuerySelectorAll(allBases).Take(opts.limits?.maxBaseElements ?? 9999);
+                var allBases = opts.BaseElements.Selectors.ToArray().Join(", ");
+                var currentBase = doc.QuerySelectorAll(allBases).Take(opts.Limits?.MaxBaseElements ?? 9999);
                 var enumerable = currentBase as IElement[] ?? currentBase.ToArray();
                 if (enumerable.Any())
                 {
                     // need to offset for non-body elements
-                    maxDepth += 1;
+                    _maxDepth += 1;
                     RecursiveWalk(RecursiveWalk, enumerable, builder);
                     return builder.ToString();
                 }
@@ -70,7 +70,7 @@ public class HtmlToTextConverter
             else
             {
                 var allBases = new List<IElement>(); 
-                foreach (var elementsSelector in opts.BaseElements.selectors)
+                foreach (var elementsSelector in opts.BaseElements.Selectors)
                 {
                     var currentBase = doc.QuerySelectorAll(elementsSelector).ToArray();
                     foreach (var testBase in currentBase)
@@ -85,16 +85,16 @@ public class HtmlToTextConverter
                 }
                 if (allBases.Any())
                 {
-                    var limited = allBases.Take(opts.limits?.maxBaseElements ?? 9999);
+                    var limited = allBases.Take(opts.Limits?.MaxBaseElements ?? 9999);
                     // need to offset for non-body elements
-                    maxDepth += 1;
+                    _maxDepth += 1;
                     RecursiveWalk(RecursiveWalk, limited, builder);
                     return builder.ToString();
                 }
             }
         }
         
-        if (opts.BaseElements.returnDomByDefault)
+        if (opts.BaseElements.ReturnDomByDefault)
         {
             RecursiveWalk(RecursiveWalk, doc.Body.ChildNodes, builder);
         }
@@ -130,31 +130,31 @@ public class HtmlToTextConverter
     //     return g;
     // }
 
-    private int maxDepth = 9999;
+    private int _maxDepth = 9999;
     
     private void RecursiveWalk(RecursiveCallback walk, IEnumerable<INode> dom, BlockTextBuilder builder)
     {
-        maxDepth -= 1;
+        _maxDepth -= 1;
 
-        if (maxDepth < 0)
+        if (_maxDepth < 0)
         { 
-            builder.addInline(builder.Options.limits.ellipsis ?? "");
+            builder.AddInline(builder.Options.Limits.Ellipsis ?? "");
             return;
         }
         
         if (dom == null) { return; }
         var options = builder.Options;
-        var tooManyChildNodes = dom.Count() > (options.limits.maxChildNodes ?? int.MaxValue);
+        var tooManyChildNodes = dom.Count() > (options.Limits.MaxChildNodes ?? int.MaxValue);
         if (tooManyChildNodes)
         {
-            dom = dom.Take((options.limits.maxChildNodes ?? int.MaxValue)).ToArray();
+            dom = dom.Take((options.Limits.MaxChildNodes ?? int.MaxValue)).ToArray();
         }
         foreach (var elem in dom)
         {
             switch (elem.NodeType)
             {
                 case NodeType.Text:
-                    builder.addInline(elem.NodeValue);
+                    builder.AddInline(elem.NodeValue);
                     break;
                 case NodeType.Element:
                 {
@@ -172,8 +172,8 @@ public class HtmlToTextConverter
                         
                         if (selector is not null)
                         {
-                            var format = options.formatters[selector.format];
-                            format(el, walk, builder, selector.options);
+                            var format = options.Formatters[selector.Format];
+                            format(el, walk, builder, selector.Options);
                         }
                     } 
 
@@ -187,7 +187,7 @@ public class HtmlToTextConverter
 
         if (tooManyChildNodes)
         {
-            builder.addInline(options.limits.ellipsis);
+            builder.AddInline(options.Limits.Ellipsis);
         }
     }
     

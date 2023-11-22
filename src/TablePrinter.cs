@@ -2,25 +2,25 @@ namespace UnDotNet.HtmlToText;
 
 public class TablePrinterCell
 {
-    public int rowspan { get; set; }
-    public int colspan { get; set; }
-    public string text { get; set; }
-    public string[] lines { get; set; }
-    public bool rendered { get; set; }
+    public int Rowspan { get; init; }
+    public int Colspan { get; init; }
+    public string Text { get; init; } = "";
+    public string[]? Lines { get; set; }
+    public bool Rendered { get; set; }
 }
 
 internal static class TablePrinterUtils
 {
-    public static List<TablePrinterCell> getRow(List<List<TablePrinterCell>> matrix, int j)
+    private static List<TablePrinterCell?> GetRow(List<List<TablePrinterCell?>> matrix, int j)
     {
         if (matrix.Count <= j)
         {
-            matrix.Add(new List<TablePrinterCell>());
+            matrix.Add(new List<TablePrinterCell?>());
         }
         return matrix[j];
     }
 
-    public static int findFirstVacantIndex(List<TablePrinterCell> row, int x = 0)
+    private static int FindFirstVacantIndex(List<TablePrinterCell?> row, int x = 0)
     {
         while (row.Count > x && row[x] != null)
         {
@@ -35,18 +35,18 @@ internal static class TablePrinterUtils
     //     return null;
     // }
 
-    public static void transposeInPlace(List<List<TablePrinterCell>> matrix, int maxSize)
+    private static void TransposeInPlace(List<List<TablePrinterCell?>> matrix, int maxSize)
     {
-        for (int i = 0; i < maxSize; i++)
+        for (var i = 0; i < maxSize; i++)
         {
-            var rowI = getRow(matrix, i);
-            for (int j = 0; j < i; j++)
+            var rowI = GetRow(matrix, i);
+            for (var j = 0; j < i; j++)
             {
-                var rowJ = getRow(matrix, j);
+                var rowJ = GetRow(matrix, j);
 
                 if (rowI.Count - 1 < j)
                 {
-                    for (int k = rowI.Count - 1; k < j; k++)
+                    for (var k = rowI.Count - 1; k < j; k++)
                     {
                         rowI.Add(null);
                     }
@@ -54,7 +54,7 @@ internal static class TablePrinterUtils
 
                 if (rowJ.Count - 1 < i)
                 {
-                    for (int k = rowJ.Count - 1; k < i; k++)
+                    for (var k = rowJ.Count - 1; k < i; k++)
                     {
                         rowJ.Add(null);
                     }
@@ -76,16 +76,16 @@ internal static class TablePrinterUtils
         }
     }
 
-    public static void putCellIntoLayout(TablePrinterCell cell, List<List<TablePrinterCell>> layout, int baseRow, int baseCol)
+    private static void PutCellIntoLayout(TablePrinterCell cell, List<List<TablePrinterCell>> layout, int baseRow, int baseCol)
     {
-        for (int r = 0; r < cell.rowspan; r++)
+        for (var r = 0; r < cell.Rowspan; r++)
         {
-            List<TablePrinterCell> layoutRow = getRow(layout, baseRow + r);
-            for (int c = 0; c < cell.colspan; c++)
+            var layoutRow = GetRow(layout, baseRow + r);
+            for (var c = 0; c < cell.Colspan; c++)
             {
                 if (layoutRow.Count - 1 <= baseCol + c)
                 {
-                    for (int k = layoutRow.Count - 1; k < baseCol + c; k++)
+                    for (var k = layoutRow.Count - 1; k < baseCol + c; k++)
                     {
                         layoutRow.Add(null);
                     }
@@ -95,44 +95,43 @@ internal static class TablePrinterUtils
         }
     }
 
-    public static int getOrInitOffset(List<int> offsets, int index)
+    private static int GetOrInitOffset(List<int> offsets, int index)
     {
         if (offsets.Count <= index)
         {
-            offsets.Add(index == 0 ? 0 : 1 + getOrInitOffset(offsets, index - 1));
+            offsets.Add(index == 0 ? 0 : 1 + GetOrInitOffset(offsets, index - 1));
         }
         return offsets[index];
     }
 
-    public static void updateOffset(List<int> offsets, int @base, int span, int value)
+    private static void UpdateOffset(List<int> offsets, int @base, int span, int value)
     {
         offsets[@base + span] = Math.Max(
-            getOrInitOffset(offsets, @base + span),
-            getOrInitOffset(offsets, @base) + value
+            GetOrInitOffset(offsets, @base + span),
+            GetOrInitOffset(offsets, @base) + value
         );
     }
 
-    public static string tableToString(List<List<TablePrinterCell>> tableRows, int rowSpacing, int colSpacing)
+    public static string TableToString(List<List<TablePrinterCell>> tableRows, int rowSpacing, int colSpacing)
     {
-        List<List<TablePrinterCell>> layout = new List<List<TablePrinterCell>>();
-        int colNumber = 0;
-        int rowNumber = tableRows.Count;
-        List<int> rowOffsets = new List<int> { 0 };
+        var layout = new List<List<TablePrinterCell>>();
+        var colNumber = 0;
+        var rowNumber = tableRows.Count;
+        var rowOffsets = new List<int> { 0 };
 
-        for (int j = 0; j < rowNumber; j++)
+        for (var j = 0; j < rowNumber; j++)
         {
-            List<TablePrinterCell> layoutRow = getRow(layout, j);
-            List<TablePrinterCell> cells = tableRows[j];
-            int x = 0;
-            for (int i = 0; i < cells.Count; i++)
+            var layoutRow = GetRow(layout, j);
+            var cells = tableRows[j];
+            var x = 0;
+            foreach (var cell in cells)
             {
-                TablePrinterCell cell = cells[i];
-                x = findFirstVacantIndex(layoutRow, x);
-                putCellIntoLayout(cell, layout, j, x);
-                x += cell.colspan;
-                cell.lines = cell.text.Split('\n');
-                int cellHeight = cell.lines.Length;
-                updateOffset(rowOffsets, j, cell.rowspan, cellHeight + rowSpacing);
+                x = FindFirstVacantIndex(layoutRow, x);
+                PutCellIntoLayout(cell, layout, j, x);
+                x += cell.Colspan;
+                cell.Lines = cell.Text.Split('\n');
+                var cellHeight = cell.Lines.Length;
+                UpdateOffset(rowOffsets, j, cell.Rowspan, cellHeight + rowSpacing);
             }
             colNumber = layoutRow.Count > colNumber ? layoutRow.Count : colNumber;
         }
@@ -150,63 +149,64 @@ internal static class TablePrinterUtils
         //     
         // }
         
-        transposeInPlace(layout, rowNumber > colNumber ? rowNumber : colNumber);
-        List<string> outputLines = new List<string>();
-        List<int> colOffsets = new List<int>() { 0 };
+        TransposeInPlace(layout, rowNumber > colNumber ? rowNumber : colNumber);
+        var outputLines = new List<string>();
+        var colOffsets = new List<int>() { 0 };
 
-        for (int x = 0; x < colNumber; x++)
+        for (var x = 0; x < colNumber; x++)
         {
-            int y = 0;
-            TablePrinterCell cell;
-            int rowsInThisColumn = Math.Min(rowNumber, layout[x].Count);
+            var y = 0;
+            var rowsInThisColumn = Math.Min(rowNumber, layout[x].Count);
             while (y < rowsInThisColumn)
             {
-                cell = layout[x][y];
+                var cell = layout[x][y];
                 if (cell != null)
                 {
-                    if (!cell.rendered)
+                    if (!cell.Rendered)
                     {
-                        int cellWidth = 0;
-                        for (int j = 0; j < cell.lines.Length; j++)
-                        {
-                            string line = cell.lines[j];
-                            int lineOffset = rowOffsets[y] + j;
-                            if (outputLines.Count - 1 < lineOffset)
+                        var cellWidth = 0;
+                        if (cell.Lines != null)
+                            for (var j = 0; j < cell.Lines.Length; j++)
                             {
-                                for (int k = outputLines.Count - 1; k < lineOffset; k++)
+                                var line = cell.Lines[j];
+                                var lineOffset = rowOffsets[y] + j;
+                                if (outputLines.Count - 1 < lineOffset)
                                 {
-                                    outputLines.Add(null);
+                                    for (var k = outputLines.Count - 1; k < lineOffset; k++)
+                                    {
+                                        outputLines.Add(null);
+                                    }
                                 }
+
+                                var colOffset = 0;
+                                if (colOffsets.Count > x)
+                                {
+                                    colOffset = GetOrInitOffset(colOffsets, x);
+                                }
+
+                                outputLines[lineOffset] = (outputLines[lineOffset] ?? "").PadRight(colOffset) + line;
+
+                                cellWidth = line.Length > cellWidth ? line.Length : cellWidth;
                             }
 
-                            var colOffset = 0;
-                            if (colOffsets.Count > x)
-                            {
-                                colOffset = getOrInitOffset(colOffsets, x);
-                            }
-                            
-                            outputLines[lineOffset] = (outputLines[lineOffset] ?? "").PadRight(colOffset) + line;
-                            
-                            cellWidth = line.Length > cellWidth ? line.Length : cellWidth;
-                        }
-                        updateOffset(colOffsets, x, cell.colspan, cellWidth + colSpacing);
-                        cell.rendered = true;
+                        UpdateOffset(colOffsets, x, cell.Colspan, cellWidth + colSpacing);
+                        cell.Rendered = true;
                     }
-                    y += cell.rowspan;
+                    y += cell.Rowspan;
                 }
                 else
                 {
-                    int lineOffset = rowOffsets[y];
+                    var lineOffset = rowOffsets[y];
                     
                     if (outputLines.Count - 1 < lineOffset)
                     {
-                        for (int k = outputLines.Count - 1; k < lineOffset; k++)
+                        for (var k = outputLines.Count - 1; k < lineOffset; k++)
                         {
                             outputLines.Add(null);
                         }
                     }
                     
-                    outputLines[lineOffset] = outputLines[lineOffset] ?? "";
+                    outputLines[lineOffset] ??= "";
                     y++;
                 }
             }

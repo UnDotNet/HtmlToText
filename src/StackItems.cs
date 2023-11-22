@@ -18,8 +18,9 @@ internal interface ITextStackItem : IStackItem
 
 internal abstract class StackItem : IStackItem
 {
-    public StackItem(IStackItem? next)
+    protected StackItem(IStackItem? next)
     {
+        // ReSharper disable once VirtualMemberCallInConstructor
         Next = next;
     }
     public virtual IStackItem? Next { get; set; }
@@ -28,7 +29,7 @@ internal abstract class StackItem : IStackItem
 
     public IStackItem GetRoot()
     {
-        return (Next != null) ? Next : this;
+        return Next ?? this;
     }
 }
 
@@ -39,15 +40,15 @@ internal class BlockStackItem : StackItem, ITextStackItem
     public string RawText { get; set; }
     public int StashedLineBreaks { get; set; }
 
-    public BlockStackItem(Options options, IStackItem next = null, int leadingLineBreaks = 1, int maxLineLength = 0)
+    public BlockStackItem(Options options, IStackItem? next = null, int leadingLineBreaks = 1, int maxLineLength = 0)
         : base(next)
     {
         LeadingLineBreaks = leadingLineBreaks;
         InlineTextBuilder = new InlineTextBuilder(options, maxLineLength);
         RawText = "";
         StashedLineBreaks = 0;
-        IsPre = next != null && next.IsPre;
-        IsNoWrap = next != null && next.IsNoWrap;
+        IsPre = next is { IsPre: true };
+        IsNoWrap = next is { IsNoWrap: true };
     }
 }
 
@@ -58,7 +59,7 @@ internal class ListStackItem : BlockStackItem
     public string PrefixAlign { get; set; }
     public int InterRowLineBreaks { get; set; }
 
-    public ListStackItem(Options options, IStackItem next = null, int interRowLineBreaks = 1, int leadingLineBreaks = 2, int maxLineLength = 0, int maxPrefixLength = 0, string prefixAlign = "left")
+    public ListStackItem(Options options, IStackItem? next = null, int interRowLineBreaks = 1, int leadingLineBreaks = 2, int maxLineLength = 0, int maxPrefixLength = 0, string prefixAlign = "left")
         : base(options, next, leadingLineBreaks, maxLineLength)
     {
         MaxPrefixLength = maxPrefixLength;
@@ -71,7 +72,7 @@ internal class ListItemStackItem : BlockStackItem
 {
     public string Prefix { get; set; }
 
-    public ListItemStackItem(Options options, BlockStackItem next = null, int leadingLineBreaks = 1, int maxLineLength = 0, string prefix = "")
+    public ListItemStackItem(Options options, BlockStackItem? next = null, int leadingLineBreaks = 1, int maxLineLength = 0, string prefix = "")
         : base(options, next, leadingLineBreaks, maxLineLength)
     {
         Prefix = prefix;
@@ -86,8 +87,8 @@ internal class TableStackItem : StackItem
         : base(next)
     {
         Rows = new List<List<TablePrinterCell>>();
-        IsPre = next != null && next.IsPre;
-        IsNoWrap = next != null && next.IsNoWrap;
+        IsPre = next is { IsPre: true };
+        IsNoWrap = next is { IsNoWrap: true };
     }
 }
 
@@ -98,8 +99,8 @@ internal class TableRowStackItem : StackItem
         : base(next)
     {
         Cells = new List<TablePrinterCell>();
-        IsPre = next != null && next.IsPre;
-        IsNoWrap = next != null && next.IsNoWrap;
+        IsPre = next is { IsPre: true };
+        IsNoWrap = next is { IsNoWrap: true };
     }
 }
 
@@ -117,8 +118,8 @@ internal class TableCellStackItem : StackItem, ITextStackItem
         InlineTextBuilder = new InlineTextBuilder(options, maxColumnWidth);
         RawText = "";
         StashedLineBreaks = 0;
-        IsPre = next != null && next.IsPre;
-        IsNoWrap = next != null && next.IsNoWrap;
+        IsPre = next is { IsPre: true };
+        IsNoWrap = next is { IsNoWrap: true };
     }
 }
 

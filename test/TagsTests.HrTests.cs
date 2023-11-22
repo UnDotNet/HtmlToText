@@ -7,33 +7,33 @@ public partial class TagsTests
     public class HrTests
     {
 
-        private string htmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
+        private static string HtmlToText(string? html, HtmlToTextOptions? options = null, Dictionary<string, string>? metadata = null) =>
             new HtmlToTextConverter().Convert(html, options, metadata);
         
         [TestMethod]
         public void ShouldOutputHorizontalLineOfDefaultLength()
         {
-            string html = "<div>foo</div><hr/><div>bar</div>";
-            string expected = "foo\n\n--------------------------------------------------------------------------------\n\nbar";
-            htmlToText(html).ShouldBe(expected);
+            var html = "<div>foo</div><hr/><div>bar</div>";
+            var expected = "foo\n\n--------------------------------------------------------------------------------\n\nbar";
+            HtmlToText(html).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldOutputHorizontalLineOfSpecificLength()
         {
-            string html = "<div>foo</div><hr/><div>bar</div>";
-            string expected = "foo\n\n------------------------------\n\nbar";
+            var html = "<div>foo</div><hr/><div>bar</div>";
+            var expected = "foo\n\n------------------------------\n\nbar";
             var options = new HtmlToTextOptions();
-            options.Hr.options.length = 30;
-            htmlToText(html, options).ShouldBe(expected);
+            options.Hr.Options.Length = 30;
+            HtmlToText(html, options).ShouldBe(expected);
         }
 
         [TestMethod]
         public void ShouldOutputHorizontalLineOfLength40WhenWordwrapIsDisabled()
         {
-            string html = "<div>foo</div><hr/><div>bar</div>";
-            string expected = "foo\n\n----------------------------------------\n\nbar";
-            htmlToText(html, new () { wordwrap = 0 }).ShouldBe(expected);
+            var html = "<div>foo</div><hr/><div>bar</div>";
+            var expected = "foo\n\n----------------------------------------\n\nbar";
+            HtmlToText(html, new () { Wordwrap = 0 }).ShouldBe(expected);
         }
     }
 }

@@ -3,9 +3,9 @@ namespace UnDotNet.HtmlToText;
 
 internal static class Utils
 {
-    public static string NumberToLetterSequence(int num, char baseChar = 'a', int baseNum = 26)
+    public static string NumberToLetterSequence(int num, char baseChar, int baseNum = 26)
     {
-        List<int> digits = new List<int>();
+        var digits = new List<int>();
         do
         {
             num -= 1;
@@ -14,8 +14,8 @@ internal static class Utils
         } while (num > 0);
         int baseCode = baseChar;
         digits.Reverse();
-        List<char> result = new List<char>();
-        foreach (int n in digits)
+        var result = new List<char>();
+        foreach (var n in digits)
         {
             result.Add((char)(baseCode + n));
         }

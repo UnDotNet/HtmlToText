@@ -3,19 +3,16 @@ using AngleSharp.Html.Dom;
 
 namespace UnDotNet.HtmlToText;
 
-public interface IHtmlToTextBuilder
-{
-    
-}
+public interface IHtmlToTextBuilder;
 
 public class BlockTextBuilder : IHtmlToTextBuilder
 {
-    public readonly Dictionary<string, string>? metaData;
+    public readonly Dictionary<string, string>? MetaData;
     public Options Options { get; }
-    private WhitespaceProcessor whitespaceProcessor;
+    private readonly WhitespaceProcessor _whitespaceProcessor;
     private IStackItem _stackItem;
     private TransformerStackItem? _wordTransformer;
-    public Dictionary<ISelector, Selector> CssRules = new Dictionary<ISelector, Selector>();
+    public Dictionary<ISelector, Selector> CssRules = new();
 
     public Selector PickSelector(IHtmlElement element)
     {
@@ -25,22 +22,22 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 
     public BlockTextBuilder(Options options, Dictionary<string, string>? metaData = null)
     {
-        this.metaData = metaData;
+        this.MetaData = metaData;
         this.Options = options;
-        this.whitespaceProcessor = new WhitespaceProcessor(options);
+        this._whitespaceProcessor = new WhitespaceProcessor(options);
         this._stackItem = new BlockStackItem(options);
         this._wordTransformer = null;
     }
     /**
        * Put a word-by-word transform function onto the transformations stack.
        *
-       * Mainly used for uppercasing. Can be bypassed to add unformatted text such as URLs.
+       * Mainly used for upper casing. Can be bypassed to add unformatted text such as URLs.
        *
        * Word transformations applied before wrapping.
        *
        * @param { (str: string) => string } wordTransform Word transformation function.
        */
-    public void pushWordTransform(Func<string, string> wordTransform)
+    public void PushWordTransform(Func<string, string> wordTransform)
     {
         this._wordTransformer = new TransformerStackItem(this._wordTransformer, wordTransform);
     }
@@ -50,7 +47,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 *
 * @returns { (str: string) => string } A function that was removed.
 */
-    public Func<string, string> popWordTransform()
+    public Func<string, string>? PopWordTransform()
     {
         if (this._wordTransformer is null) { return null; }
         var transform = this._wordTransformer.Transform;
@@ -58,23 +55,23 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         return transform;
     }
 
-    public void startNoWrap()
+    public void StartNoWrap()
     {
         this._stackItem.IsNoWrap = true;
     }
 
-    public void stopNoWrap()
+    public void StopNoWrap()
     {
         this._stackItem.IsNoWrap = false;
     }
 
     private Func<string, string>? _getCombinedWordTransformer()
     {
-        Func<string, string>? wt = _wordTransformer is not null ? (string str) => applyTransformer(str, _wordTransformer) : null;
-        var ce = this.Options.encodeCharacters;
+        Func<string, string>? wt = _wordTransformer is not null ? str => ApplyTransformer(str, _wordTransformer) : null;
+        var ce = this.Options.EncodeCharacters;
         if (wt is null) return ce;
         if (ce is null) return wt;
-        return (string str) => ce(wt(str));
+        return str => ce(wt(str));
     }
 
     private IStackItem _popStackItem()
@@ -87,7 +84,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
     /**
 * Add a line break into currently built block.
 */
-    public void addLineBreak()
+    public void AddLineBreak()
     {
         if (this._stackItem is ITextStackItem textStackItem)
         {
@@ -106,7 +103,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
     /**
 * Allow to break line in case directly following text will not fit.
 */
-    public void addWordBreakOpportunity()
+    public void AddWordBreakOpportunity()
     {
         if (this._stackItem is ITextStackItem textStackItem)
         {
@@ -128,7 +125,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * Don't encode characters as well.
 * (Use this for things like URL addresses).
 */
-    public void addInline(string str, bool noWordTransform = false)
+    public void AddInline(string str, bool noWordTransform = false)
     {
         if (this._stackItem is not ITextStackItem textStackItem) return;
         if (textStackItem.IsPre)
@@ -140,12 +137,12 @@ public class BlockTextBuilder : IHtmlToTextBuilder
             str.Length == 0 || // empty string
             (
                 textStackItem.StashedLineBreaks > 0 && // stashed linebreaks make whitespace irrelevant
-                !this.whitespaceProcessor.testContainsWords(str) // no words to add
+                !this._whitespaceProcessor.TestContainsWords(str) // no words to add
             )
         ) { return; }
-        if (this.Options.preserveNewlines)
+        if (this.Options.PreserveNewlines)
         {
-            var newlinesNumber = this.whitespaceProcessor.countNewlinesNoWords(str);
+            var newlinesNumber = this._whitespaceProcessor.CountNewlinesNoWords(str);
             if (newlinesNumber > 0)
             {
                 textStackItem.InlineTextBuilder.StartNewLine(newlinesNumber);
@@ -157,7 +154,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         {
             textStackItem.InlineTextBuilder.StartNewLine(textStackItem.StashedLineBreaks);
         }
-        this.whitespaceProcessor.ShrinkWrapAdd(
+        this._whitespaceProcessor.ShrinkWrapAdd(
             str,
             textStackItem.InlineTextBuilder,
             noWordTransform ? null : _getCombinedWordTransformer(),
@@ -174,7 +171,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 *
 * @param { string } str Text to add.
 */
-    public void addLiteral(string str)
+    public void AddLiteral(string str)
     {
         if (this._stackItem is not ITextStackItem textStackItem) return;
         if (str.Length == 0) { return; }
@@ -187,7 +184,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         {
             textStackItem.InlineTextBuilder.StartNewLine(textStackItem.StashedLineBreaks);
         }
-        this.whitespaceProcessor.addLiteral(
+        this._whitespaceProcessor.AddLiteral(
             str,
             textStackItem.InlineTextBuilder,
             this._stackItem.IsNoWrap
@@ -210,7 +207,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { boolean } [param0.isPre]
 * Should HTML whitespace be preserved inside this block.
 */
-    public void openBlock(int leadingLineBreaks = 1, int reservedLineLength = 0, bool isPre = false )
+    public void OpenBlock(int leadingLineBreaks = 1, int reservedLineLength = 0, bool isPre = false )
     {
         if (_stackItem is not ITextStackItem textStackItem) return;
         var maxLineLength = Math.Max(20, textStackItem.InlineTextBuilder.MaxLineLength - reservedLineLength);
@@ -238,7 +235,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * in order to keep line lengths correct.
 * Used for whole block markup.
 */
-    public void closeBlock(int trailingLineBreaks = 1, Func<string, string>? blockTransform = null)
+    public void CloseBlock(int trailingLineBreaks = 1, Func<string, string>? blockTransform = null)
     {
         if (_popStackItem() is not ITextStackItem block)
         {
@@ -269,7 +266,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { number } [param0.leadingLineBreaks]
 * This list should have at least this number of line breaks to separate it from any preceding block.
 */
-    public void openList(int maxPrefixLength = 0, string prefixAlign = "left", int interRowLineBreaks = 1, int leadingLineBreaks = 2)
+    public void OpenList(int maxPrefixLength = 0, string prefixAlign = "left", int interRowLineBreaks = 1, int leadingLineBreaks = 2)
     {
         if (_stackItem is not ITextStackItem textStackItem)
         {
@@ -294,13 +291,13 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { string } [param0.prefix]
 * Prefix for this list item (item number, bullet point, etc).
 */
-    public void openListItem(string prefix = "")
+    public void OpenListItem(string prefix = "")
     {
-        if (!(this._stackItem is ListStackItem))
+        if (_stackItem is not ListStackItem list)
         {
             throw new Exception("Can't add a list item to something that is not a list! Check the formatter.");
         }
-        var list = (ListStackItem)this._stackItem;
+
         var prefixLength = Math.Max(prefix.Length, list.MaxPrefixLength);
         var maxLineLength = Math.Max(20, list.InlineTextBuilder.MaxLineLength - prefixLength);
         this._stackItem = new ListItemStackItem(this.Options, list,
@@ -308,12 +305,13 @@ public class BlockTextBuilder : IHtmlToTextBuilder
     }
 
     /**
-* Finalize currently built list item, add it's content to the parent list.
-*/
-    public void closeListItem()
+    * Finalize currently built list item, add it's content to the parent list.
+    */
+    public void CloseListItem()
     {
         var listItem = this._popStackItem() as ListItemStackItem;
-        var list = (ListStackItem)listItem.Next;
+        var list = (ListStackItem)listItem?.Next;
+        if (list == null) return;
         var prefixLength = Math.Max(listItem.Prefix.Length, list.MaxPrefixLength);
         var spacing = '\n' + new string(' ', prefixLength);
         var prefix = (list.PrefixAlign == "right")
@@ -337,20 +335,17 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { number } [param0.trailingLineBreaks]
 * This list should have at least this number of line breaks to separate it from any following block.
 */
-    public void closeList(int trailingLineBreaks = 2)
+    public void CloseList(int trailingLineBreaks = 2)
     {
         if (this._popStackItem() is not ListStackItem list) return;
         var text = GetText(list);
-        if (text != null)
-        {
-            AddText(this._stackItem, text, list.LeadingLineBreaks, trailingLineBreaks);
-        }
+        AddText(this._stackItem, text, list.LeadingLineBreaks, trailingLineBreaks);
     }
 
     /**
 * Start building a table.
 */
-    public void openTable()
+    public void OpenTable()
     {
         this._stackItem = new TableStackItem(this._stackItem);
     }
@@ -358,7 +353,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
     /**
 * Start building a table row.
 */
-    public void openTableRow()
+    public void OpenTableRow()
     {
         if (!(this._stackItem is TableStackItem))
         {
@@ -376,7 +371,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
        * @param { number } [param0.maxColumnWidth]
        * Wrap cell content to this width. Fall back to global wordwrap value if undefined.
        */
-    public void openTableCell(int maxColumnWidth = 0)
+    public void OpenTableCell(int maxColumnWidth = 0)
     {
         if (!(this._stackItem is TableRowStackItem))
         {
@@ -394,18 +389,18 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { number } [param0.colspan] How many columns this cell should occupy.
 * @param { number } [param0.rowspan] How many rows this cell should occupy.
 */
-    public void closeTableCell(int colspan = 1, int rowspan = 1)
+    public void CloseTableCell(int colspan = 1, int rowspan = 1)
     {
         var cell = this._popStackItem();
         var text = GetText(cell).Trim('\n');
         if (cell.Next is not TableRowStackItem row) return;
-        row.Cells.Add(new TablePrinterCell{ colspan = colspan, rowspan = rowspan, text = text });
+        row.Cells.Add(new TablePrinterCell{ Colspan = colspan, Rowspan = rowspan, Text = text });
     }
 
     /**
 * Finalize currently built table row and add it to parent table's rows.
 */
-    public void closeTableRow()
+    public void CloseTableRow()
     {
         if (this._popStackItem() is not TableRowStackItem row) return;
         if (row.Next is not TableStackItem table) return;
@@ -427,9 +422,9 @@ public class BlockTextBuilder : IHtmlToTextBuilder
 * @param { number } [param0.trailingLineBreaks]
 * This table should have at least this number of line breaks to separate it from any following block.
 */
-    public void closeTable(Func<List<List<TablePrinterCell>>,int, int, string> tableToString, int leadingLineBreaks = 2, int trailingLineBreaks = 2)
+    public void CloseTable(Func<List<List<TablePrinterCell>>,int, int, string> tableToString, int leadingLineBreaks = 2, int trailingLineBreaks = 2)
     {
-        var table = this._popStackItem() as TableStackItem;
+        if (this._popStackItem() is not TableStackItem table) return;
         var output = tableToString(table.Rows, 0, 0);
         if (output != null)
         {
@@ -448,9 +443,9 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         {
             throw new Exception("Only blocks, list items and table cells can contain text.");
         }
-        return (textStackItem.InlineTextBuilder.IsEmpty())
+        return textStackItem.InlineTextBuilder.IsEmpty()
             ? textStackItem.RawText
-            : textStackItem.RawText + textStackItem.InlineTextBuilder.ToString();
+            : textStackItem.RawText + textStackItem.InlineTextBuilder;
     }
 
     private void AddText(IStackItem stackItem, string text, int leadingLineBreaks, int trailingLineBreaks)
@@ -474,8 +469,8 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         textStackItem.StashedLineBreaks = trailingLineBreaks;
     }
 
-    private string applyTransformer(string str, TransformerStackItem? transformer)
+    private string ApplyTransformer(string str, TransformerStackItem? transformer)
     {
-        return transformer is not null ? applyTransformer(transformer.Transform(str), transformer.Next) : str;
+        return transformer is { Transform: not null } ? ApplyTransformer(transformer.Transform(str), transformer.Next) : str;
     }
 }

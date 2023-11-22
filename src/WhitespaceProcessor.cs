@@ -9,40 +9,38 @@ namespace UnDotNet.HtmlToText;
 */
 internal class WhitespaceProcessor
 {
-    private string whitespaceChars;
-    private string whitespaceCodes;
-    private Regex leadingWhitespaceRe;
-    private Regex trailingWhitespaceRe;
-    public Regex allWhitespaceOrEmptyRe;
-    private Regex newlineOrNonWhitespaceRe;
-    private Regex newlineOrNonNewlineStringRe;
+    private readonly string _whitespaceChars;
+    private readonly Regex _leadingWhitespaceRe;
+    private readonly Regex _trailingWhitespaceRe;
+    private readonly Regex _allWhitespaceOrEmptyRe;
+    private readonly Regex _newlineOrNonWhitespaceRe;
+    private readonly Regex _newlineOrNonNewlineStringRe;
 
     public Action<string, InlineTextBuilder, Func<string, string>?, bool> ShrinkWrapAdd { get; private set; }
 
     public WhitespaceProcessor(Options options)
     {
-        whitespaceChars = (options.preserveNewlines)
-            ? options.whitespaceCharacters.Replace("\n", "")
-            : options.whitespaceCharacters;
-       
+        _whitespaceChars = (options.PreserveNewlines)
+            ? options.WhitespaceCharacters.Replace("\n", "")
+            : options.WhitespaceCharacters;
+
         //  \t\r\n\f
         // space
         // \u0020\u0009\u000d\u000a\u000c
         //  \t\r\f
         // \u0020\u0009\u000d\u000c
-       
-        whitespaceCodes = CharactersToCodes(whitespaceChars);
-        leadingWhitespaceRe = new Regex($"^[{whitespaceCodes}]");
-        trailingWhitespaceRe = new Regex($"[{whitespaceCodes}]$");
-        allWhitespaceOrEmptyRe = new Regex($"^[{whitespaceCodes}]*$");
-        newlineOrNonWhitespaceRe = new Regex($"(\n|[^\n{whitespaceCodes}])", RegexOptions.Compiled);
-        newlineOrNonNewlineStringRe = new Regex("(\n|[^\n]+)", RegexOptions.Compiled);
+        var whitespaceCodes = CharactersToCodes(_whitespaceChars);
+        _leadingWhitespaceRe = new Regex($"^[{whitespaceCodes}]");
+        _trailingWhitespaceRe = new Regex($"[{whitespaceCodes}]$");
+        _allWhitespaceOrEmptyRe = new Regex($"^[{whitespaceCodes}]*$");
+        _newlineOrNonWhitespaceRe = new Regex($"(\n|[^\n{whitespaceCodes}])", RegexOptions.Compiled);
+        _newlineOrNonNewlineStringRe = new Regex("(\n|[^\n]+)", RegexOptions.Compiled);
 
    
-        if (options.preserveNewlines)
+        if (options.PreserveNewlines)
         {
             var wordOrNewlineRe = new Regex($"\n|[^\n{whitespaceCodes}]+", RegexOptions.Compiled);
-            ShrinkWrapAdd = (string text, InlineTextBuilder inlineTextBuilder, Func<string, string>? transform, bool noWrap) =>
+            ShrinkWrapAdd = (text, inlineTextBuilder, transform, noWrap) =>
             {
                 transform ??= str => str;
                 if (string.IsNullOrEmpty(text)) { return; }
@@ -59,7 +57,7 @@ internal class WhitespaceProcessor
                         {
                             inlineTextBuilder.StartNewLine();
                         }
-                        else if (previouslyStashedSpace || this.testLeadingWhitespace(text))
+                        else if (previouslyStashedSpace || this.TestLeadingWhitespace(text))
                         {
                             inlineTextBuilder.PushWord(transform(m[i].Value), noWrap);
                         }
@@ -80,13 +78,13 @@ internal class WhitespaceProcessor
                         }
                     }
                 }
-                inlineTextBuilder.StashedSpace = (previouslyStashedSpace && !anyMatch) || (this.testTrailingWhitespace(text));
+                inlineTextBuilder.StashedSpace = (previouslyStashedSpace && !anyMatch) || (this.TestTrailingWhitespace(text));
             };
         }
         else
         {
             var wordRe = new Regex($"[^{whitespaceCodes}]+", RegexOptions.Compiled);
-            ShrinkWrapAdd = (string text, InlineTextBuilder inlineTextBuilder, Func<string, string>? transform, bool noWrap) =>
+            ShrinkWrapAdd = (text, inlineTextBuilder, transform, noWrap) =>
             {
                 transform ??= str => str;
                 if (string.IsNullOrEmpty(text)) { return; }
@@ -98,7 +96,7 @@ internal class WhitespaceProcessor
                     if (i == 0)
                     {
                         anyMatch = true;
-                        if (previouslyStashedSpace || this.testLeadingWhitespace(text))
+                        if (previouslyStashedSpace || this.TestLeadingWhitespace(text))
                         {
                             inlineTextBuilder.PushWord(transform(m[i].Value), noWrap);
                         }
@@ -112,7 +110,7 @@ internal class WhitespaceProcessor
                         inlineTextBuilder.PushWord(transform(m[i].Value), noWrap);
                     }
                 }
-                inlineTextBuilder.StashedSpace = (previouslyStashedSpace && !anyMatch) || this.testTrailingWhitespace(text);
+                inlineTextBuilder.StashedSpace = (previouslyStashedSpace && !anyMatch) || this.TestTrailingWhitespace(text);
             };
         }
     }
@@ -132,12 +130,12 @@ internal class WhitespaceProcessor
 * @param { InlineTextBuilder } inlineTextBuilder A builder to receive processed text.
 * @param { boolean }           [noWrap] Don't wrap text even if the line is too long.
 */
-    public void addLiteral(string text, InlineTextBuilder inlineTextBuilder, bool noWrap = true)
+    public void AddLiteral(string text, InlineTextBuilder inlineTextBuilder, bool noWrap = true)
     {
         if (string.IsNullOrEmpty(text)) { return; }
         var previouslyStashedSpace = inlineTextBuilder.StashedSpace;
         var anyMatch = false;
-        var m = newlineOrNonNewlineStringRe.Match(text);
+        var m = _newlineOrNonNewlineStringRe.Match(text);
         if (m.Success)
         {
             anyMatch = true;
@@ -153,7 +151,7 @@ internal class WhitespaceProcessor
             {
                 inlineTextBuilder.ConcatWord(m.Value, noWrap);
             }
-            while ((m = newlineOrNonNewlineStringRe.Match(text, m.Index + m.Length)) != Match.Empty)
+            while ((m = _newlineOrNonNewlineStringRe.Match(text, m.Index + m.Length)) != Match.Empty)
             {
                 if (m.Value == "\n")
                 {
@@ -175,9 +173,9 @@ internal class WhitespaceProcessor
      * @param   { string }  text  The string to test.
      * @returns { boolean }
      */
-    public bool testLeadingWhitespace(string text)
+    private bool TestLeadingWhitespace(string text)
     {
-        return leadingWhitespaceRe.IsMatch(text);
+        return _leadingWhitespaceRe.IsMatch(text);
     }
    
     /*
@@ -186,9 +184,9 @@ internal class WhitespaceProcessor
      * @param   { string }  text  The string to test.
      * @returns { boolean }
      */
-    public bool testTrailingWhitespace(string text)
+    private bool TestTrailingWhitespace(string text)
     {
-        return trailingWhitespaceRe.IsMatch(text);
+        return _trailingWhitespaceRe.IsMatch(text);
     }
    
    
@@ -198,12 +196,12 @@ internal class WhitespaceProcessor
      * @param   { string }  text  The string to test.
      * @returns { boolean }
      */
-    public bool testContainsWords(string text)
+    public bool TestContainsWords(string text)
     {
         //dotnet bug considers "\n" to be empty 
-        if (!whitespaceChars.Contains("\n") && text == "\n") return true;
+        if (!_whitespaceChars.Contains('\n') && text == "\n") return true;
        
-        return !allWhitespaceOrEmptyRe.IsMatch(text);
+        return !_allWhitespaceOrEmptyRe.IsMatch(text);
     }
    
     /*
@@ -214,10 +212,10 @@ internal class WhitespaceProcessor
      * @param   { string }  text  Input string.
      * @returns { number }
      */
-    public int countNewlinesNoWords(string text)
+    public int CountNewlinesNoWords(string text)
     {
         var counter = 0;
-        var m = newlineOrNonWhitespaceRe.Matches(text);
+        var m = _newlineOrNonWhitespaceRe.Matches(text);
         for (var i = 0; i < m.Count; i++)
         {
             if (m[i].Value== "\n")
