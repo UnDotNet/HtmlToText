@@ -394,7 +394,7 @@ public class BlockTextBuilder : IHtmlToTextBuilder
         var cell = this._popStackItem();
         var text = GetText(cell).Trim('\n');
         if (cell.Next is not TableRowStackItem row) return;
-        row.Cells.Add(new TablePrinterCell(colspan, rowspan, text));
+        row.Cells.Add(new TablePrinterCell(rowspan, colspan, text));
     }
 
     /**
