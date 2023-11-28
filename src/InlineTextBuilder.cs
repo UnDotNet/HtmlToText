@@ -87,7 +87,11 @@ internal class InlineTextBuilder
     private string? PopWord()
     {
         if (_nextLineWords.Count == 0) return null;
+#if (NETFRAMEWORK)
+        var lastWord = _nextLineWords[_nextLineWords.Count - 1];
+#else
         var lastWord = _nextLineWords[^1];
+#endif
         _nextLineWords.RemoveAt(_nextLineWords.Count - 1);
         var isLineStart = this._nextLineWords.Count == 0;
         var cost = lastWord.Length + (isLineStart ? 0 : 1);

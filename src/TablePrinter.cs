@@ -2,12 +2,20 @@ namespace UnDotNet.HtmlToText;
 
 public class TablePrinterCell
 {
-    public int Rowspan { get; init; }
-    public int Colspan { get; init; }
-    public string Text { get; init; } = "";
-    public string[]? Lines { get; set; }
+    public int Rowspan { get; private set; }
+    public int Colspan { get; private set; }
+    public string Text { get; private set; } = "";
+    public string[] Lines { get; set; }
     public bool Rendered { get; set; }
+
+    public TablePrinterCell(int rowspan, int colspan, string text)
+    {
+        Rowspan = rowspan;
+        Colspan = colspan;
+        Text = text;
+    }
 }
+
 
 internal static class TablePrinterUtils
 {

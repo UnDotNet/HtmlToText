@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net48;net6.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>annotations</Nullable>
         <LangVersion>preview</LangVersion>
@@ -35,16 +35,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AngleSharp" Version="1.0.4"/>
+      <PackageReference Include="AngleSharp" Version="1.0.4" />
     </ItemGroup>
     
     <ItemGroup>
-        <InternalsVisibleTo Include="UnDotNet.HtmlToText.Tests"/>
+        <InternalsVisibleTo Include="UnDotNet.HtmlToText.Tests" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="../README.md" Pack="true" Visible="false" PackagePath="\"/>
-        <None Include="$(AssetsDirectory)/htmltotext_logo.png" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="../README.md" Pack="true" Visible="false" PackagePath="\" />
+        <None Include="$(AssetsDirectory)/htmltotext_logo.png" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
 
 </Project>

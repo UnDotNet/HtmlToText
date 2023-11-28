@@ -11,7 +11,11 @@ public static class StringExtensions
     
     public static string Join(this string[] value, char separator)
     {
+#if (NETFRAMEWORK)
+        return string.Join(separator.ToString(), value);
+#else
         return string.Join(separator, value);
+#endif
     }
     
     public static string Join(this string[] value, string separator)
