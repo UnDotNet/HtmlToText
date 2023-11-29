@@ -559,7 +559,7 @@ public class ConverterTests
         
             traceListener.Flush();
             Trace.Listeners.Remove(traceListener);
-            traceWriter.ToString().ShouldBe("Input length 20000000 is above allowed limit of 16777216. Truncating without ellipsis.\n");
+            traceWriter.ToString().Trim().ShouldBe("Input length 20000000 is above allowed limit of 16777216. Truncating without ellipsis.");
         
         }
 
@@ -576,7 +576,7 @@ public class ConverterTests
         
             traceListener.Flush();
             Trace.Listeners.Remove(traceListener);
-            traceWriter.ToString().ShouldBe("Input length 20000000 is above allowed limit of 42. Truncating without ellipsis.\n");
+            traceWriter.ToString().Trim().ShouldBe("Input length 20000000 is above allowed limit of 42. Truncating without ellipsis.");
         }
     }
     
