@@ -12,6 +12,7 @@ module.exports = {
       excludeAuthors: ['John Campion'],
     },
     'release-it-dotnet': {
+      build: true,
       publish: true,
       csprojFile: './src/UnDotNet.HtmlToText.csproj',
     },
