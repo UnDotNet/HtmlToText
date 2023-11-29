@@ -24,6 +24,7 @@ module.exports = {
   },
   github: {
     release: true,
+    releaseName: "${version}",
   },
   npm: {
     publish: false,
