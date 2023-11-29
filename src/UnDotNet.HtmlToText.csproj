@@ -6,7 +6,7 @@
         <Nullable>annotations</Nullable>
         <LangVersion>preview</LangVersion>
         <PackageId>UnDotNet.HtmlToText</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         
         <Authors>John Campion</Authors>
         <PackageTags>html;text;converter;html-to-text</PackageTags>
@@ -35,16 +35,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AngleSharp" Version="1.0.4" />
+      <PackageReference Include="AngleSharp" Version="1.0.4"/>
     </ItemGroup>
     
     <ItemGroup>
-        <InternalsVisibleTo Include="UnDotNet.HtmlToText.Tests" />
+        <InternalsVisibleTo Include="UnDotNet.HtmlToText.Tests"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="../README.md" Pack="true" Visible="false" PackagePath="\" />
-        <None Include="$(AssetsDirectory)/htmltotext_logo.png" Pack="true" Visible="false" PackagePath="" />
+        <None Include="../README.md" Pack="true" Visible="false" PackagePath="\"/>
+        <None Include="$(AssetsDirectory)/htmltotext_logo.png" Pack="true" Visible="false" PackagePath=""/>
     </ItemGroup>
 
 </Project>
